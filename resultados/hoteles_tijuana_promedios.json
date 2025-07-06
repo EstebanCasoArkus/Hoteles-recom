@@ -1,0 +1,260 @@
+[
+  {
+    "nombre": "QUARTZ HOTEL & SPA",
+    "estrellas": 5.0,
+    "precio_promedio": 2852.4,
+    "noches_contadas": 15
+  },
+  {
+    "nombre": "City Express by Marriott Tijuana Insurgentes",
+    "estrellas": 3.0,
+    "precio_promedio": 1648.64,
+    "noches_contadas": 14
+  },
+  {
+    "nombre": "Eazy Centro by ULIV",
+    "estrellas": 4.0,
+    "precio_promedio": 1690.2,
+    "noches_contadas": 15
+  },
+  {
+    "nombre": "City Express by Marriott Tijuana Otay",
+    "estrellas": 4.0,
+    "precio_promedio": 1612,
+    "noches_contadas": 8
+  },
+  {
+    "nombre": "Gamma Tijuana",
+    "estrellas": 4.0,
+    "precio_promedio": 1598.07,
+    "noches_contadas": 15
+  },
+  {
+    "nombre": "Holiday Inn Express & Suites - Tijuana Otay by IHG",
+    "estrellas": 3.0,
+    "precio_promedio": 2599,
+    "noches_contadas": 15
+  },
+  {
+    "nombre": "Hotel Astor Tijuana",
+    "estrellas": 3.0,
+    "precio_promedio": 1556.87,
+    "noches_contadas": 15
+  },
+  {
+    "nombre": "Hotel Catalina",
+    "estrellas": 2.0,
+    "precio_promedio": 754.47,
+    "noches_contadas": 15
+  },
+  {
+    "nombre": "ibis Tijuana",
+    "estrellas": 4.0,
+    "precio_promedio": 1602.67,
+    "noches_contadas": 15
+  },
+  {
+    "nombre": "Hotel Principado Tijuana Aeropuerto",
+    "estrellas": 3.0,
+    "precio_promedio": 1381.67,
+    "noches_contadas": 15
+  },
+  {
+    "nombre": "Sunio City",
+    "estrellas": 2.0,
+    "precio_promedio": 1530,
+    "noches_contadas": 15
+  },
+  {
+    "nombre": "Coyote Lofts-Estacion Federal",
+    "estrellas": 0,
+    "precio_promedio": 667.93,
+    "noches_contadas": 15
+  },
+  {
+    "nombre": "Hotel Quinta",
+    "estrellas": 2.0,
+    "precio_promedio": 888.75,
+    "noches_contadas": 12
+  },
+  {
+    "nombre": "Hotel Lucerna Tijuana",
+    "estrellas": 4.0,
+    "precio_promedio": 2845,
+    "noches_contadas": 1
+  },
+  {
+    "nombre": "Fiesta Inn Tijuana Otay Aeropuerto",
+    "estrellas": 4.0,
+    "precio_promedio": 2635.53,
+    "noches_contadas": 15
+  },
+  {
+    "nombre": "Extended Suites Tijuana Macroplaza",
+    "estrellas": 4.0,
+    "precio_promedio": 1431.53,
+    "noches_contadas": 15
+  },
+  {
+    "nombre": "Sleep Inn Tijuana",
+    "estrellas": 3.0,
+    "precio_promedio": 1668.67,
+    "noches_contadas": 15
+  },
+  {
+    "nombre": "Baja Inn Hoteles Rio",
+    "estrellas": 4.0,
+    "precio_promedio": 2797.73,
+    "noches_contadas": 15
+  },
+  {
+    "nombre": "Hotel Baja",
+    "estrellas": 0,
+    "precio_promedio": 737,
+    "noches_contadas": 11
+  },
+  {
+    "nombre": "HOTEL RIO RITA",
+    "estrellas": 3.0,
+    "precio_promedio": 1435.07,
+    "noches_contadas": 15
+  },
+  {
+    "nombre": "Pueblo Amigo Hotel Plaza y Casino",
+    "estrellas": 4.0,
+    "precio_promedio": 2381.8,
+    "noches_contadas": 15
+  },
+  {
+    "nombre": "Hampton Inn By Hilton Tijuana",
+    "estrellas": 3.0,
+    "precio_promedio": 2576.93,
+    "noches_contadas": 15
+  },
+  {
+    "nombre": "Hotel Jatay",
+    "estrellas": 4.0,
+    "precio_promedio": 1150.6,
+    "noches_contadas": 15
+  },
+  {
+    "nombre": "Hotel Velario",
+    "estrellas": 3.0,
+    "precio_promedio": 1260.07,
+    "noches_contadas": 15
+  },
+  {
+    "nombre": "Hangar Inn TJ - Aeropuerto",
+    "estrellas": 4.0,
+    "precio_promedio": 1594,
+    "noches_contadas": 15
+  },
+  {
+    "nombre": "City Express Plus by Marriott Tijuana",
+    "estrellas": 4.0,
+    "precio_promedio": 1932.53,
+    "noches_contadas": 15
+  },
+  {
+    "nombre": "City Express by Marriott Tijuana Rio",
+    "estrellas": 4.0,
+    "precio_promedio": 1782.47,
+    "noches_contadas": 15
+  },
+  {
+    "nombre": "City Express by Marriott Tijuana El Florido",
+    "estrellas": 0,
+    "precio_promedio": 1586.78,
+    "noches_contadas": 9
+  },
+  {
+    "nombre": "Sadie's Bed and Breakfast / Hotel",
+    "estrellas": 0,
+    "precio_promedio": 2386,
+    "noches_contadas": 1
+  },
+  {
+    "nombre": "Hotel Colonial Tijuana",
+    "estrellas": 3.0,
+    "precio_promedio": 839,
+    "noches_contadas": 1
+  },
+  {
+    "nombre": "BEACHFRONT Escape - Cozy Studio",
+    "estrellas": 3.0,
+    "precio_promedio": 2703,
+    "noches_contadas": 1
+  },
+  {
+    "nombre": "Hotel Frontiere Tijuana",
+    "estrellas": 4.0,
+    "precio_promedio": 1174.67,
+    "noches_contadas": 6
+  },
+  {
+    "nombre": "Eazy Rio by ULIV",
+    "estrellas": 4.0,
+    "precio_promedio": 1655,
+    "noches_contadas": 1
+  },
+  {
+    "nombre": "Rio Suites",
+    "estrellas": 4.0,
+    "precio_promedio": 1863,
+    "noches_contadas": 1
+  },
+  {
+    "nombre": "Baja Inn Hoteles La Mesa",
+    "estrellas": 4.0,
+    "precio_promedio": 2880,
+    "noches_contadas": 1
+  },
+  {
+    "nombre": "Marriott Tijuana Hotel",
+    "estrellas": 5.0,
+    "precio_promedio": 2678,
+    "noches_contadas": 1
+  },
+  {
+    "nombre": "SIE7E by Cosmopolitan Tijuana",
+    "estrellas": 4.0,
+    "precio_promedio": 3392,
+    "noches_contadas": 1
+  },
+  {
+    "nombre": "Quetzal House",
+    "estrellas": 4.0,
+    "precio_promedio": 1325,
+    "noches_contadas": 1
+  },
+  {
+    "nombre": "Su Casa en Tijuana",
+    "estrellas": 4.0,
+    "precio_promedio": 3278,
+    "noches_contadas": 1
+  },
+  {
+    "nombre": "Exclusive Luxury Condo 2bd",
+    "estrellas": 4.0,
+    "precio_promedio": 1963,
+    "noches_contadas": 1
+  },
+  {
+    "nombre": "Rancho Callado - Paipai Cabin",
+    "estrellas": 0,
+    "precio_promedio": 4567,
+    "noches_contadas": 1
+  },
+  {
+    "nombre": "el balcón de los leones 2",
+    "estrellas": 0,
+    "precio_promedio": 862,
+    "noches_contadas": 1
+  },
+  {
+    "nombre": "Hotel Guillen Jr",
+    "estrellas": 2.0,
+    "precio_promedio": 700,
+    "noches_contadas": 1
+  }
+]
