@@ -1,0 +1,38 @@
+[
+  {
+    "nombre": "- M U L U K -",
+    "fecha": "Sat, Jul 19 • 8:00 PM",
+    "lugar": "Casa Badóh",
+    "enlace": "https://www.eventbrite.com/e/-m-u-l-u-k--tickets-1442457903419?aff=ebdssbdestsearch",
+    "latitude": 32.5363723,
+    "longitude": -117.024824,
+    "distance_km": 1.08
+  },
+  {
+    "nombre": "Experiencia Glamping en Baja California",
+    "fecha": "Friday • 7:00 PM + 33 more",
+    "lugar": "Hotel Pueblo Amigo",
+    "enlace": "https://www.eventbrite.com/e/experiencia-glamping-en-baja-california-tickets-429508329977?aff=ebdssbdestsearch",
+    "latitude": 32.5371439,
+    "longitude": -117.0262682,
+    "distance_km": 1.16
+  },
+  {
+    "nombre": "420 MarcSD's Dispo, Brewery, Winery, Tequila Tour",
+    "fecha": "Today • 5:00 PM",
+    "lugar": "San Diego",
+    "enlace": "https://www.eventbrite.com/e/420-marcsds-dispo-brewery-winery-tequila-tour-tickets-1304887085399?aff=ebdssbdestsearch",
+    "latitude": 32.4661965,
+    "longitude": -117.0559339,
+    "distance_km": 7.29
+  },
+  {
+    "nombre": "Cena de Accion de Gracias Bonita Vista",
+    "fecha": "Sat, Nov 15 • 6:00 PM",
+    "lugar": "The Church of Jesus Christ of Latter-day Saints",
+    "enlace": "https://www.eventbrite.com/e/entradas-cena-de-accion-de-gracias-bonita-vista-1413522025429?aff=ebdssbdestsearch",
+    "latitude": 32.4846917,
+    "longitude": -117.0780612,
+    "distance_km": 6.78
+  }
+]

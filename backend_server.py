@@ -28,8 +28,12 @@ def run_scrape_hotels():
 @app.route('/run-scrapeo-geo', methods=['POST'])
 def run_scrapeo_geo():
     try:
+        from flask import request
+        data = request.get_json()
+        hotel_name = data.get('hotel_name', 'Grand Hotel Tijuana') if data else 'Grand Hotel Tijuana'
+        
         result = subprocess.run(
-            ['python', 'python_scripts/scrapeo_geo.py'],
+            ['python', 'python_scripts/scrapeo_geo.py', '32.5149,-117.0382', hotel_name],
             capture_output=True,
             text=True,
             check=True,

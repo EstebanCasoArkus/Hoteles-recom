@@ -28,7 +28,8 @@ import {
   Calendar,
   MapPin,
   Users,
-  Building2
+  Building2,
+  Activity
 } from "lucide-react";
 import { 
   BarChart, 
@@ -88,6 +89,41 @@ class ChartErrorBoundary extends React.Component<{children: React.ReactNode}, {h
   }
 }
 
+// Tooltip personalizado con mejor diseño visual
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload || !payload.length) {
+    return null;
+  }
+
+  return (
+    <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 p-4 border border-gray-200 dark:border-gray-600 rounded-xl shadow-2xl backdrop-blur-sm">
+      <div className="space-y-2">
+        <div className="border-b border-gray-200 dark:border-gray-600 pb-2 mb-2">
+          <p className="font-bold text-gray-900 dark:text-gray-100 text-sm">
+            {typeof label === 'number' ? `${label} estrellas` : label}
+          </p>
+        </div>
+        {payload.map((entry: any, index: number) => (
+          <div key={index} className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div 
+                className="w-3 h-3 rounded-full" 
+                style={{ backgroundColor: entry.color }}
+              />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {entry.name}
+              </span>
+            </div>
+            <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
+              {entry.value}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export const PreciosTab: React.FC = () => {
   const { hotels, loading, error, stats } = useBackendAPI();
   
@@ -126,13 +162,27 @@ export const PreciosTab: React.FC = () => {
           avgPrice: 0,
           totalPrice: 0,
           minPrice: Infinity,
-          maxPrice: 0
+          maxPrice: 0,
+          competitiveCount: 0,
+          expensiveCount: 0,
+          competitiveHotels: [],
+          expensiveHotels: []
         };
       }
       acc[stars].count++;
       acc[stars].totalPrice += hotel.precio_promedio;
       acc[stars].minPrice = Math.min(acc[stars].minPrice, hotel.precio_promedio);
       acc[stars].maxPrice = Math.max(acc[stars].maxPrice, hotel.precio_promedio);
+      
+      // Clasificar por competitividad
+      const avgPrice = filteredHotels.reduce((sum, h) => sum + h.precio_promedio, 0) / filteredHotels.length;
+      if (hotel.precio_promedio <= avgPrice) {
+        acc[stars].competitiveCount++;
+        acc[stars].competitiveHotels.push(hotel);
+      } else {
+        acc[stars].expensiveCount++;
+        acc[stars].expensiveHotels.push(hotel);
+      }
       return acc;
     }, {} as Record<number, any>);
 
@@ -146,11 +196,19 @@ export const PreciosTab: React.FC = () => {
 
   // Datos para gráfica de dispersión precio vs estrellas
   const scatterData = useMemo(() => {
+    if (!filteredHotels.length) return [];
+    
+    const avgPrice = filteredHotels.reduce((sum, hotel) => sum + hotel.precio_promedio, 0) / filteredHotels.length;
+    
     return filteredHotels.map(hotel => ({
       name: hotel.nombre,
       estrellas: hotel.estrellas,
       precio: hotel.precio_promedio,
-      noches: hotel.noches_contadas
+      noches: hotel.noches_contadas,
+      isCompetitive: hotel.precio_promedio <= avgPrice,
+      avgPrice: avgPrice,
+      priceDifference: hotel.precio_promedio - avgPrice,
+      priceDifferencePercent: ((hotel.precio_promedio - avgPrice) / avgPrice) * 100
     }));
   }, [filteredHotels]);
 
@@ -405,39 +463,116 @@ export const PreciosTab: React.FC = () => {
       )}
 
       {/* Gráficas */}
-      <Tabs value={selectedChart} onValueChange={setSelectedChart} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="distribution">Distribución</TabsTrigger>
-          <TabsTrigger value="scatter">Dispersión</TabsTrigger>
-          <TabsTrigger value="ranges">Rangos</TabsTrigger>
-          <TabsTrigger value="trends">Tendencias</TabsTrigger>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            Visualizaciones de Datos
+          </h3>
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <span>Tab activa:</span>
+            <Badge variant="outline" className="bg-blue-50 dark:bg-blue-900/20">
+              {selectedChart === 'distribution' && 'Distribución'}
+              {selectedChart === 'scatter' && 'Dispersión'}
+              {selectedChart === 'trends' && 'Tendencias'}
+            </Badge>
+          </div>
+        </div>
+        
+        <Tabs value={selectedChart} onValueChange={setSelectedChart} className="w-full">
+        <TabsList className="grid w-full grid-cols-3 h-16 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 p-1 rounded-xl shadow-lg border border-blue-100 dark:border-gray-600">
+          <TabsTrigger 
+            value="distribution" 
+            className="flex items-center gap-2 px-4 py-3 rounded-lg transition-all duration-300 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-md data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:font-semibold hover:bg-white/50 dark:hover:bg-gray-700/50"
+          >
+            <BarChart3 className="w-4 h-4" />
+            <span className="hidden sm:inline">Distribución</span>
+            <span className="sm:hidden">Dist.</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="scatter" 
+            className="flex items-center gap-2 px-4 py-3 rounded-lg transition-all duration-300 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-md data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:font-semibold hover:bg-white/50 dark:hover:bg-gray-700/50"
+          >
+            <Activity className="w-4 h-4" />
+            <span className="hidden sm:inline">Dispersión</span>
+            <span className="sm:hidden">Disp.</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="trends" 
+            className="flex items-center gap-2 px-4 py-3 rounded-lg transition-all duration-300 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-md data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:font-semibold hover:bg-white/50 dark:hover:bg-gray-700/50"
+          >
+            <TrendingUp className="w-4 h-4" />
+            <span className="hidden sm:inline">Tendencias</span>
+            <span className="sm:hidden">Tend.</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="distribution" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Distribución de Precios por Estrellas</CardTitle>
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-blue-50 dark:from-gray-800 dark:to-gray-700">
+            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="w-5 h-5" />
+                Distribución de Hoteles por Estrellas y Competitividad
+              </CardTitle>
+              <p className="text-blue-100 text-sm">Análisis de la distribución de hoteles competitivos vs no competitivos por categoría de estrellas</p>
             </CardHeader>
             <CardContent>
               {chartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={400}>
-                  <ComposedChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="estrellas" />
-                    <YAxis yAxisId="left" />
-                    <YAxis yAxisId="right" orientation="right" />
-                    <Tooltip 
-                      formatter={(value, name) => [
-                        name === 'count' ? value : formatPrice(Number(value)),
-                        name === 'count' ? 'Cantidad' : 'Precio'
-                      ]}
-                      cursor={{ fill: 'rgba(0,0,0,0.1)' }}
-                    />
-                    <Legend />
-                    <Bar yAxisId="left" dataKey="count" fill="#8884d8" name="Cantidad de Hoteles" />
-                    <Line yAxisId="right" type="monotone" dataKey="avgPrice" stroke="#ff7300" name="Precio Promedio" />
-                  </ComposedChart>
-                </ResponsiveContainer>
+                <ChartErrorBoundary>
+                  <ResponsiveContainer width="100%" height={400}>
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="estrellas" />
+                      <YAxis />
+                      <Tooltip 
+                        contentStyle={{
+                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          border: '1px solid rgba(255, 255, 255, 0.2)',
+                          borderRadius: '12px',
+                          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                          backdropFilter: 'blur(8px)',
+                          padding: '16px',
+                          color: 'white'
+                        }}
+                        labelStyle={{
+                          color: 'white',
+                          fontWeight: 'bold',
+                          fontSize: '14px',
+                          marginBottom: '8px',
+                          borderBottom: '1px solid rgba(255, 255, 255, 0.3)',
+                          paddingBottom: '8px'
+                        }}
+                        itemStyle={{
+                          color: 'rgba(255, 255, 255, 0.9)',
+                          fontSize: '13px',
+                          fontWeight: '500'
+                        }}
+                        formatter={(value: any, name: string) => {
+                          if (name === 'Competitivos') {
+                            return [`${value} hoteles competitivos`, 'Hoteles con precios por debajo del promedio'];
+                          } else if (name === 'No Competitivos') {
+                            return [`${value} hoteles no competitivos`, 'Hoteles con precios por encima del promedio'];
+                          } else if (name === 'Precio Promedio') {
+                            return [formatPrice(value), 'Precio promedio del mercado'];
+                          } else if (name === 'Rango Máximo') {
+                            return [formatPrice(value), 'Precio más alto registrado'];
+                          } else if (name === 'Rango Mínimo') {
+                            return [formatPrice(value), 'Precio más bajo registrado'];
+                          }
+                          return [value, name];
+                        }}
+                        labelFormatter={(label: any) => {
+                          if (typeof label === 'number') {
+                            return `${label} estrellas`;
+                          }
+                          return label;
+                        }}
+                      />
+                      <Legend />
+                      <Bar dataKey="competitiveCount" stackId="a" fill="#10B981" name="Competitivos" />
+                      <Bar dataKey="expensiveCount" stackId="a" fill="#EF4444" name="No Competitivos" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartErrorBoundary>
               ) : (
                 <div className="text-center py-8 text-gray-500">
                   No hay datos disponibles para mostrar la distribución
@@ -448,39 +583,91 @@ export const PreciosTab: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="scatter" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Precio vs Estrellas</CardTitle>
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-green-50 dark:from-gray-800 dark:to-gray-700">
+            <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-t-lg">
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="w-5 h-5" />
+                Precio vs Estrellas - Análisis de Competitividad
+              </CardTitle>
+              <p className="text-green-100 text-sm">Correlación entre estrellas y precios, con indicadores de competitividad del mercado</p>
             </CardHeader>
             <CardContent>
               {scatterData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={400}>
-                  <ScatterChart>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      type="number" 
-                      dataKey="estrellas" 
-                      name="Estrellas"
-                      domain={[0, 5]}
-                    />
-                    <YAxis 
-                      type="number" 
-                      dataKey="precio" 
-                      name="Precio"
-                      tickFormatter={(value) => formatPrice(value)}
-                    />
-                    <ZAxis type="number" dataKey="z" range={[20, 100]} />
-                    <Tooltip 
-                      formatter={(value, name) => [
-                        name === 'precio' ? formatPrice(Number(value)) : value,
-                        name === 'precio' ? 'Precio' : 'Estrellas'
-                      ]}
-                      labelFormatter={(label) => `${label} estrellas`}
-                      cursor={{ fill: 'rgba(0,0,0,0.1)' }}
-                    />
-                    <Scatter data={scatterData} fill="#8884d8" />
-                  </ScatterChart>
-                </ResponsiveContainer>
+                <ChartErrorBoundary>
+                  <ResponsiveContainer width="100%" height={400}>
+                    <ScatterChart>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        type="number" 
+                        dataKey="estrellas" 
+                        name="Estrellas"
+                        domain={[0, 5]}
+                      />
+                      <YAxis 
+                        type="number" 
+                        dataKey="precio" 
+                        name="Precio"
+                        tickFormatter={(value) => formatPrice(value)}
+                      />
+                      <ZAxis type="number" dataKey="noches" range={[20, 100]} />
+                      <Tooltip 
+                        contentStyle={{
+                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          border: '1px solid rgba(255, 255, 255, 0.2)',
+                          borderRadius: '12px',
+                          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                          backdropFilter: 'blur(8px)',
+                          padding: '16px',
+                          color: 'white'
+                        }}
+                        labelStyle={{
+                          color: 'white',
+                          fontWeight: 'bold',
+                          fontSize: '14px',
+                          marginBottom: '8px',
+                          borderBottom: '1px solid rgba(255, 255, 255, 0.3)',
+                          paddingBottom: '8px'
+                        }}
+                        itemStyle={{
+                          color: 'rgba(255, 255, 255, 0.9)',
+                          fontSize: '13px',
+                          fontWeight: '500'
+                        }}
+                        formatter={(value: any, name: string) => {
+                          if (name === 'Competitivos') {
+                            return [`${value} hoteles competitivos`, 'Hoteles con precios por debajo del promedio'];
+                          } else if (name === 'No Competitivos') {
+                            return [`${value} hoteles no competitivos`, 'Hoteles con precios por encima del promedio'];
+                          } else if (name === 'Precio Promedio') {
+                            return [formatPrice(value), 'Precio promedio del mercado'];
+                          } else if (name === 'Rango Máximo') {
+                            return [formatPrice(value), 'Precio más alto registrado'];
+                          } else if (name === 'Rango Mínimo') {
+                            return [formatPrice(value), 'Precio más bajo registrado'];
+                          }
+                          return [value, name];
+                        }}
+                        labelFormatter={(label: any) => {
+                          if (typeof label === 'number') {
+                            return `${label} estrellas - Categoría hotelera`;
+                          }
+                          return label;
+                        }}
+                      />
+                      <Legend />
+                      <Scatter 
+                        data={scatterData.filter(h => h.isCompetitive)} 
+                        fill="#10B981" 
+                        name="Competitivos"
+                      />
+                      <Scatter 
+                        data={scatterData.filter(h => !h.isCompetitive)} 
+                        fill="#EF4444" 
+                        name="No Competitivos"
+                      />
+                    </ScatterChart>
+                  </ResponsiveContainer>
+                </ChartErrorBoundary>
               ) : (
                 <div className="text-center py-8 text-gray-500">
                   No hay datos disponibles para mostrar la dispersión
@@ -490,86 +677,99 @@ export const PreciosTab: React.FC = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="ranges" className="space-y-4" forceMount={true}>
-          {selectedChart === "ranges" && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Distribución por Rangos de Precio</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {priceRangeData.length > 0 ? (
-                  <ChartErrorBoundary>
-                    <ResponsiveContainer width="100%" height={400}>
-                      <PieChart key={priceRangeData.length}>
-                        <Pie
-                          data={priceRangeData}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={({ range, percentage }) => `${range} (${percentage.toFixed(1)}%)`}
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="count"
-                        >
-                          {priceRangeData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          formatter={(value, name) => [value, 'Hoteles']}
-                          cursor={{ fill: 'rgba(0,0,0,0.1)' }}
-                          content={({ active, payload }) =>
-                            active && payload && payload.length > 0 ? (
-                              <div className="bg-white dark:bg-gray-800 p-3 border rounded-lg shadow-lg">
-                                <p className="font-semibold">{payload[0].payload.range}</p>
-                                <p className="text-sm text-gray-600">Hoteles: {payload[0].payload.count}</p>
-                                <p className="text-sm text-gray-600">Porcentaje: {payload[0].payload.percentage.toFixed(1)}%</p>
-                              </div>
-                            ) : null
-                          }
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </ChartErrorBoundary>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    No hay datos disponibles para mostrar los rangos de precio
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
         <TabsContent value="trends" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Análisis de Tendencias</CardTitle>
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-purple-50 dark:from-gray-800 dark:to-gray-700">
+            <CardHeader className="bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-t-lg">
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5" />
+                Análisis de Tendencias y Rangos de Precio
+              </CardTitle>
+              <p className="text-purple-100 text-sm">Evolución de precios promedio y rangos (mínimo-máximo) por categoría de estrellas</p>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <AreaChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="estrellas" />
-                  <YAxis tickFormatter={(value) => formatPrice(value)} />
-                  <Tooltip 
-                    formatter={(value) => [formatPrice(Number(value)), 'Precio']}
-                    cursor={{ fill: 'rgba(0,0,0,0.1)' }}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="avgPrice" 
-                    stroke="#8884d8" 
-                    fill="#8884d8" 
-                    fillOpacity={0.3}
-                    name="Precio Promedio"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              <ChartErrorBoundary>
+                <ResponsiveContainer width="100%" height={400}>
+                  <ComposedChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="estrellas" />
+                    <YAxis tickFormatter={(value) => formatPrice(value)} />
+                    <Tooltip 
+                      contentStyle={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        borderRadius: '12px',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                        backdropFilter: 'blur(8px)',
+                        padding: '16px',
+                        color: 'white'
+                      }}
+                      labelStyle={{
+                        color: 'white',
+                        fontWeight: 'bold',
+                        fontSize: '14px',
+                        marginBottom: '8px',
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.3)',
+                        paddingBottom: '8px'
+                      }}
+                      itemStyle={{
+                        color: 'rgba(255, 255, 255, 0.9)',
+                        fontSize: '13px',
+                        fontWeight: '500'
+                      }}
+                      formatter={(value: any, name: string) => {
+                        if (name === 'Competitivos') {
+                          return [`${value} hoteles competitivos`, 'Hoteles con precios por debajo del promedio'];
+                        } else if (name === 'No Competitivos') {
+                          return [`${value} hoteles no competitivos`, 'Hoteles con precios por encima del promedio'];
+                        } else if (name === 'Precio Promedio') {
+                          return [formatPrice(value), 'Precio promedio del mercado'];
+                        } else if (name === 'Rango Máximo') {
+                          return [formatPrice(value), 'Precio más alto registrado'];
+                        } else if (name === 'Rango Mínimo') {
+                          return [formatPrice(value), 'Precio más bajo registrado'];
+                        }
+                        return [value, name];
+                      }}
+                      labelFormatter={(label: any) => {
+                        if (typeof label === 'number') {
+                          return `${label} estrellas`;
+                        }
+                        return label;
+                      }}
+                    />
+                    <Legend />
+                    <Area 
+                      dataKey="maxPrice" 
+                      stackId="a" 
+                      stroke="#8B5CF6" 
+                      fill="#8B5CF6" 
+                      fillOpacity={0.1}
+                      name="Rango Máximo"
+                    />
+                    <Area 
+                      dataKey="minPrice" 
+                      stackId="a" 
+                      stroke="#10B981" 
+                      fill="#10B981" 
+                      fillOpacity={0.3}
+                      name="Rango Mínimo"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="avgPrice" 
+                      stroke="#EF4444" 
+                      strokeWidth={3}
+                      name="Precio Promedio"
+                      dot={{ r: 6, fill: "#EF4444" }}
+                    />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </ChartErrorBoundary>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+      </div>
 
       {/* Recomendaciones */}
       {priceRecommendations.length > 0 && (
@@ -679,4 +879,4 @@ export const PreciosTab: React.FC = () => {
       </Card>
     </div>
   );
-}; 
+};

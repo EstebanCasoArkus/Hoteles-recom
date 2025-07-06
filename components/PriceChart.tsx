@@ -1,4 +1,4 @@
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Legend, CartesianGrid } from 'recharts';
 
 interface PriceChartProps {
   data: Array<{ date: string; [hotel: string]: number | string }>
@@ -6,6 +6,23 @@ interface PriceChartProps {
   roomType: string
   mainHotel: string
 }
+
+// Custom Tooltip component for Recharts
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+        <p className="font-medium text-gray-900 dark:text-gray-100">{`${label}`}</p>
+        {payload.map((entry: any, index: number) => (
+          <p key={index} className="text-sm" style={{ color: entry.color }}>
+            {`${entry.name}: ${entry.value}`}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
 
 export function PriceChart({ data, hotels, roomType, mainHotel }: PriceChartProps) {
   const colors = [
@@ -27,11 +44,7 @@ export function PriceChart({ data, hotels, roomType, mainHotel }: PriceChartProp
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
           <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
           <YAxis stroke="#64748b" fontSize={12} domain={['auto', 'auto']} />
-          <Tooltip
-            contentStyle={{ background: '#fff', border: '1px solid #e5e7eb', color: '#334155' }}
-            labelStyle={{ color: '#334155' }}
-            itemStyle={{ color: '#334155' }}
-          />
+          <CustomTooltip />
           <Legend wrapperStyle={{ color: '#334155' }} />
           {hotels.map((hotel, idx) => (
             <Line

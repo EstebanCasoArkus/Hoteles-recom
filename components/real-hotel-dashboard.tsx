@@ -35,7 +35,7 @@ import { calculateAdjustedPrice, calcularAjustesParaHoteles, type Event, type Ho
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Slider } from "@/components/ui/slider";
 import { ChartContainer } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, TooltipProps } from "recharts";
 
 // Empty data structures since simulated data has been removed
 const hotelData = {
@@ -63,6 +63,23 @@ const formatPrice = (price: number) =>
 const getCurrentDateString = () => {
   const today = new Date();
   return today.toISOString().split('T')[0];
+};
+
+// Custom Tooltip component for Recharts
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+        <p className="font-medium text-gray-900 dark:text-gray-100">{`${label}`}</p>
+        {payload.map((entry: any, index: number) => (
+          <p key={index} className="text-sm" style={{ color: entry.color }}>
+            {`${entry.name}: ${entry.value}`}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
 };
 
 /**************************** Layout ********************************/ 
@@ -1026,7 +1043,7 @@ const RealHotelDashboard: React.FC = () => {
           <BarChart data={chartData}>
             <XAxis dataKey="tipo" stroke="#64748b" fontSize={12} />
             <YAxis stroke="#64748b" fontSize={12} allowDecimals={false} />
-            <Tooltip />
+            <CustomTooltip />
             <Bar dataKey="Bajo" stackId="a" fill="#34d399" />
             <Bar dataKey="Medio" stackId="a" fill="#fbbf24" />
             <Bar dataKey="Alto" stackId="a" fill="#f87171" />

@@ -14,7 +14,7 @@ import {
   Wifi, 
   Coffee,
   Dumbbell,
-  Swimming,
+
   TrendingUp,
   TrendingDown,
   AlertCircle,
@@ -25,7 +25,7 @@ import {
   Heart,
   BookOpen
 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { Event } from '@/lib/hotel-correlation';
 
 interface HotelDetailsModalProps {
@@ -60,6 +60,23 @@ const formatHotelName = (name: string) => {
   return name.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
+// Custom Tooltip component for Recharts
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+        <p className="font-medium text-gray-900 dark:text-gray-100">{`${label}`}</p>
+        {payload.map((entry: any, index: number) => (
+          <p key={index} className="text-sm" style={{ color: entry.color }}>
+            {`${entry.name}: ${entry.value}`}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
 export const HotelDetailsModal: React.FC<HotelDetailsModalProps> = ({
   hotel,
   isOpen,
@@ -74,7 +91,7 @@ export const HotelDetailsModal: React.FC<HotelDetailsModalProps> = ({
     { icon: <Car className="w-4 h-4" />, name: "Estacionamiento", available: true },
     { icon: <Coffee className="w-4 h-4" />, name: "Desayuno", available: true },
     { icon: <Dumbbell className="w-4 h-4" />, name: "Gimnasio", available: false },
-    { icon: <Swimming className="w-4 h-4" />, name: "Piscina", available: true },
+    { icon: <Dumbbell className="w-4 h-4" />, name: "Piscina", available: true },
   ];
 
   const hotelRating = 4.2;
@@ -256,7 +273,7 @@ export const HotelDetailsModal: React.FC<HotelDetailsModalProps> = ({
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="date" />
                       <YAxis />
-                      <Tooltip />
+                      <CustomTooltip />
                       <Line type="monotone" dataKey="original" stroke="#94a3b8" strokeWidth={2} name="Precio Original" />
                       <Line type="monotone" dataKey="adjusted" stroke="#3b82f6" strokeWidth={2} name="Precio Ajustado" />
                     </LineChart>
