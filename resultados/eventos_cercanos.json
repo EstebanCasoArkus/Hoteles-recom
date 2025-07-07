@@ -6,7 +6,7 @@
     "enlace": "https://www.eventbrite.com/e/-m-u-l-u-k--tickets-1442457903419?aff=ebdssbdestsearch",
     "latitude": 32.5363723,
     "longitude": -117.024824,
-    "distance_km": 1.08
+    "distance_km": 2.69
   },
   {
     "nombre": "Experiencia Glamping en Baja California",
@@ -15,7 +15,7 @@
     "enlace": "https://www.eventbrite.com/e/experiencia-glamping-en-baja-california-tickets-429508329977?aff=ebdssbdestsearch",
     "latitude": 32.5371439,
     "longitude": -117.0262682,
-    "distance_km": 1.16
+    "distance_km": 2.71
   },
   {
     "nombre": "420 MarcSD's Dispo, Brewery, Winery, Tequila Tour",
@@ -24,7 +24,7 @@
     "enlace": "https://www.eventbrite.com/e/420-marcsds-dispo-brewery-winery-tequila-tour-tickets-1304887085399?aff=ebdssbdestsearch",
     "latitude": 32.4661965,
     "longitude": -117.0559339,
-    "distance_km": 7.29
+    "distance_km": 5.65
   },
   {
     "nombre": "Cena de Accion de Gracias Bonita Vista",
@@ -33,6 +33,15 @@
     "enlace": "https://www.eventbrite.com/e/entradas-cena-de-accion-de-gracias-bonita-vista-1413522025429?aff=ebdssbdestsearch",
     "latitude": 32.4846917,
     "longitude": -117.0780612,
-    "distance_km": 6.78
+    "distance_km": 5.03
+  },
+  {
+    "nombre": "Cena de Navidad Bonita Vista",
+    "fecha": "Fri, Dec 12 • 6:00 PM",
+    "lugar": "The Church of Jesus Christ of Latter-day Saints",
+    "enlace": "https://www.eventbrite.com/e/entradas-cena-de-navidad-bonita-vista-1413521483809?aff=ebdssbdestsearch",
+    "latitude": 32.4846917,
+    "longitude": -117.0780612,
+    "distance_km": 5.03
   }
 ]

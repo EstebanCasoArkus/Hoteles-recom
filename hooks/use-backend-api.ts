@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
@@ -31,32 +30,29 @@ export const useBackendAPI = () => {
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<HotelStats | null>(null);
 
-  // Fetch hotels from Supabase directly
+  // Fetch hotels from backend API
   const fetchHotels = useCallback(async () => {
     setLoading(true);
     setError(null);
     
     try {
-      console.log('🔄 Fetching hotels from Supabase...');
+      console.log('🔄 Fetching hotels from backend API...');
       
-      const { data: hotels, error } = await supabase
-        .from('hotels')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const response = await fetch(`${BACKEND_URL}/api/hotels`);
       
-      if (error) {
-        console.error('❌ Error fetching hotels:', error);
-        setError(error.message);
-        return;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      console.log(`✅ Fetched ${hotels?.length || 0} hotels from Supabase`);
+      const hotels = await response.json();
+      
+      console.log(`✅ Fetched ${hotels?.length || 0} hotels from backend API`);
       setHotels(hotels || []);
       
       // Calculate stats from hotels
       if (hotels && hotels.length > 0) {
-        const prices = hotels.map(h => h.precio_promedio);
-        const avgPrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
+        const prices = hotels.map((h: Hotel) => h.precio_promedio);
+        const avgPrice = prices.reduce((sum: number, price: number) => sum + price, 0) / prices.length;
         
         const newStats = {
           total_hotels: hotels.length,
@@ -65,7 +61,7 @@ export const useBackendAPI = () => {
             min: Math.min(...prices),
             max: Math.max(...prices)
           },
-          star_distribution: hotels.reduce((acc, hotel) => {
+          star_distribution: hotels.reduce((acc: Record<number, number>, hotel: Hotel) => {
             acc[hotel.estrellas] = (acc[hotel.estrellas] || 0) + 1;
             return acc;
           }, {} as Record<number, number>),

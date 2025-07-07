@@ -82,19 +82,8 @@ export const EventsTab: React.FC = () => {
     setError(null);
     
     try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-      
-      if (!supabaseUrl || !supabaseKey) {
-        throw new Error("Faltan variables de entorno de Supabase. Revisa tu archivo .env");
-      }
-      
-      const response = await fetch(`${supabaseUrl}/rest/v1/events?select=*&order=created_at.desc`, {
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`
-        }
-      });
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+      const response = await fetch(`${backendUrl}/api/events`);
       
       if (!response.ok) {
         throw new Error('Error fetching events');
