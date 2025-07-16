@@ -276,7 +276,7 @@ export const HotelsTab: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {hotels.map((hotel) => (
+              {(Array.isArray(hotels) ? hotels : []).map((hotel) => (
                 <Card key={hotel.id || hotel.nombre} className="hover:shadow-lg transition-shadow">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">

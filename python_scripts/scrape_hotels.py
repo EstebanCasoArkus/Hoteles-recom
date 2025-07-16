@@ -14,6 +14,10 @@ import os
 import requests
 from dotenv import load_dotenv
 from pathlib import Path
+import json as pyjson
+from prophet import Prophet
+import pandas as pd
+import numpy as np
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
@@ -25,6 +29,39 @@ SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY')
 
 print("SUPABASE_URL:", SUPABASE_URL)
 print("SUPABASE_ANON_KEY:", SUPABASE_ANON_KEY)
+
+# Modificar para recibir user_id como argumento obligatorio
+import sys
+import io
+import os
+import requests
+from dotenv import load_dotenv
+from pathlib import Path
+import json as pyjson
+from prophet import Prophet
+import pandas as pd
+import numpy as np
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
+# Cargar .env desde la raíz del proyecto
+load_dotenv(dotenv_path=Path(__file__).parent.parent / '.env')
+
+SUPABASE_URL = os.getenv('SUPABASE_URL')
+SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY')
+
+print("SUPABASE_URL:", SUPABASE_URL)
+print("SUPABASE_ANON_KEY:", SUPABASE_ANON_KEY)
+
+if len(sys.argv) >= 2 and sys.argv[1] == '--user_id':
+    if len(sys.argv) < 3:
+        print('Debes proporcionar el user_id después de --user_id')
+        sys.exit(1)
+    user_id = sys.argv[2]
+else:
+    print('Debes ejecutar el script con --user_id <user_id>')
+    sys.exit(1)
+print(f'user_id: {user_id}')
 
 def scrape_hotels():
     """Scrape hotel prices from Booking.com"""
@@ -54,11 +91,12 @@ def scrape_hotels():
             
             url = (
                 "https://www.booking.com/searchresults.es.html?"
-                f"ss=Tijuana&checkin={checkin}&checkout={checkout}&group_adults=1&no_rooms=1&group_children=0"
+                f"ss=Tijuana&checkin={checkin}&checkout={checkout}&group_adults=1&no_rooms=1&group_children=0&ht_id=204"
             )
             
             print(f"📅 Consultando hoteles para {checkin} → {checkout}")
             driver.get(url)
+            
             
             try:
                 WebDriverWait(driver, 20).until(
@@ -106,8 +144,10 @@ def scrape_hotels():
                                 "Estrellas": estrellas,
                                 "Precios": []
                             }
-
-                        hoteles_info[nombre]["Precios"].append(precio_num)
+                        hoteles_info[nombre]["Precios"].append({
+                            "fecha": str(checkin),
+                            "precio": precio_num
+                        })
                         hotels_found += 1
 
                 except Exception as e:
@@ -129,14 +169,62 @@ def scrape_hotels():
     resultado_final = []
     for hotel in hoteles_info.values():
         precios = hotel["Precios"]
-        if precios:
-            promedio = statistics.mean(precios)
-            resultado_final.append({
-                "nombre": hotel["Nombre del Hotel"],
-                "estrellas": hotel["Estrellas"] if hotel["Estrellas"] is not None else 0,
-                "precio_promedio": round(promedio, 2),
-                "noches_contadas": len(precios)
-            })
+        print(f"Procesando hotel: {hotel['Nombre del Hotel']}")
+        print(f"Precios crudos: {precios}")
+        if len(precios) < 2:
+            print(f"[ADVERTENCIA] Hotel '{hotel['Nombre del Hotel']}' tiene menos de 2 precios reales. Saltando predicción y promedio.")
+            continue
+        # Prepara datos para Prophet
+        df = pd.DataFrame(precios)
+        df = df.rename(columns={"fecha": "ds", "precio": "y"})
+        df["ds"] = pd.to_datetime(df["ds"])
+        model = Prophet()
+        model.fit(df)
+        # Calcular fechas hasta fin de mes y todo el siguiente mes
+        last_real_date = df["ds"].max()
+        today = datetime.today().date()
+        # Primer día del mes siguiente
+        first_next_month = (today.replace(day=1) + timedelta(days=32)).replace(day=1)
+        # Último día del siguiente mes
+        last_next_month = (first_next_month + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+        # Generar fechas desde el último real hasta el último del siguiente mes
+        total_days = (last_next_month - today).days + 1
+        future = model.make_future_dataframe(periods=total_days, freq='D')
+        forecast = model.predict(future)
+        # Combina precios reales y predichos
+        precios_map = {p["fecha"]: p["precio"] for p in precios}
+        precios_completos = []
+        if not isinstance(forecast, pd.DataFrame) or 'ds' not in forecast.columns or 'yhat' not in forecast.columns or len(forecast) < 2:
+            print(f"[ADVERTENCIA] Hotel: {hotel.get('Nombre del Hotel', 'Desconocido')} - forecast no es un DataFrame válido, le faltan columnas o tiene menos de 2 filas.\nDetalles: type={type(forecast)}, columnas={getattr(forecast, 'columns', 'N/A')}, filas={len(forecast) if hasattr(forecast, '__len__') else 'N/A'}")
+            continue  # o maneja el error como prefieras
+        for _, row in forecast.iterrows():
+            ds_value = row['ds']
+            if isinstance(ds_value, (list, tuple, np.ndarray)):
+                ds_value = ds_value[0]
+            if not hasattr(ds_value, 'strftime'):
+                ds_value = pd.to_datetime(ds_value)
+            fecha_str = ds_value.strftime("%Y-%m-%d")
+            if fecha_str in precios_map:
+                precios_completos.append({"fecha": fecha_str, "precio": precios_map[fecha_str], "tipo": "real"})
+            else:
+                # Solo agregar predicho si la fecha es hoy o futura
+                if hasattr(ds_value, 'date') and ds_value.date() >= today:
+                    yhat_value = row['yhat']
+                    if isinstance(yhat_value, (list, tuple, np.ndarray)):
+                        yhat_value = yhat_value[0]
+                    try:
+                        yhat_value = float(yhat_value)
+                    except Exception:
+                        yhat_value = 0
+                    precios_completos.append({"fecha": fecha_str, "precio": int(round(yhat_value)), "tipo": "predicho"})
+        promedio = statistics.mean([p["precio"] for p in precios])
+        resultado_final.append({
+            "nombre": hotel["Nombre del Hotel"],
+            "estrellas": hotel["Estrellas"] if hotel["Estrellas"] is not None else 0,
+            "precio_promedio": round(promedio, 2),
+            "noches_contadas": len(precios),
+            "precios_por_dia": precios_completos
+        })
 
     # Save to JSON
     output_dir = "resultados"
@@ -169,15 +257,22 @@ def scrape_hotels():
             # Preparar datos para la función SQL
             hotel_data = []
             for hotel in resultado_final:
+                print(f"precios por dia: {hotel['precios_por_dia']}")
                 hotel_data.append({
                     "nombre": hotel["nombre"],
                     "estrellas": int(hotel["estrellas"]) if hotel["estrellas"] is not None else 0,
                     "precio_promedio": hotel["precio_promedio"] if hotel["precio_promedio"] is not None else 0,
                     "noches_contadas": hotel["noches_contadas"] if hotel["noches_contadas"] is not None else 0,
-                    "created_at": datetime.now().isoformat()
+                    "precios_por_dia": hotel["precios_por_dia"] if hotel["precios_por_dia"] is not None else [], # Incluir precios por día
+                    "created_at": datetime.now().isoformat(),
+                    "user_id": user_id
                 })
             
             # Llamar a la función SQL personalizada
+            with open("resultados/hoteles_tijuana_promedios.json", "r", encoding="utf-8") as f:
+                hotel_data = json.load(f)
+            print("JSON enviado a Supabase:", pyjson.dumps({"hotel_data": hotel_data}, indent=2, ensure_ascii=False))
+            # Luego POST:
             refresh_resp = requests.post(
                 f"{SUPABASE_URL}/rest/v1/rpc/refresh_hotels",
                 headers=headers,
@@ -193,29 +288,39 @@ def scrape_hotels():
                 
                 # Fallback: método manual
                 # Primero limpiar
-                delete_resp = requests.delete(f"{SUPABASE_URL}/rest/v1/hotels?id=gte.0", headers=headers)
+                delete_resp = requests.delete(f"{SUPABASE_URL}/rest/v1/hotels?nombre=not.is.null", headers=headers)
                 if delete_resp.status_code in (200, 204):
                     print("✅ Datos anteriores eliminados")
                     
                     # Luego insertar uno por uno
                     print(f"💾 Insertando {len(resultado_final)} hoteles...")
-                    for i, hotel in enumerate(resultado_final, 1):
-                        data = {
-                            "nombre": hotel["nombre"],
-                            "estrellas": int(hotel["estrellas"]) if hotel["estrellas"] is not None else 0,
-                            "precio_promedio": hotel["precio_promedio"] if hotel["precio_promedio"] is not None else 0,
-                            "noches_contadas": hotel["noches_contadas"] if hotel["noches_contadas"] is not None else 0,
-                            "created_at": datetime.now().isoformat()
-                        }
-                        
-                        r = requests.post(f"{SUPABASE_URL}/rest/v1/hotels", headers=headers, json=data)
-                        
-                        if r.status_code in (200, 201):
-                            print(f"✅ [{i}/{len(resultado_final)}] Guardado: {hotel['nombre']}")
-                        else:
-                            print(f"❌ [{i}/{len(resultado_final)}] Error guardando {hotel['nombre']}: {r.status_code}")
-                        
-                        time.sleep(0.1)
+                    total = sum(len(hotel.get("precios_por_dia", [])) for hotel in resultado_final)
+                    count = 0
+                    for hotel in resultado_final:
+                        for precio_dia in hotel.get("precios_por_dia", []):
+                            data = {
+                                "nombre": hotel["nombre"],
+                                "fecha": precio_dia["fecha"],
+                                "precio": precio_dia["precio"],
+                                "tipo": precio_dia.get("tipo", ""),
+                                "estrellas": int(hotel["estrellas"]) if hotel["estrellas"] is not None else 0,
+                                "precio_promedio": hotel["precio_promedio"] if hotel["precio_promedio"] is not None else 0,
+                                "noches_contadas": hotel["noches_contadas"] if hotel["noches_contadas"] is not None else 0,
+                                "created_at": datetime.now().isoformat(),
+                                "user_id": user_id
+                            }
+                            print("Enviando a Supabase:", data)
+                            url = f"{SUPABASE_URL}/rest/v1/hotels?on_conflict=nombre,fecha"
+                            headers_upsert = headers.copy()
+                            headers_upsert["Prefer"] = "resolution=merge-duplicates"
+                            r = requests.post(url, headers=headers_upsert, json=data)
+                            print("Status:", r.status_code, "Response:", r.text)
+                            count += 1
+                            if r.status_code in (200, 201):
+                                print(f"✅ [{count}/{total}] Guardado: {hotel['nombre']} {precio_dia['fecha']}")
+                            else:
+                                print(f"❌ [{count}/{total}] Error guardando {hotel['nombre']} {precio_dia['fecha']}: {r.status_code}")
+                            time.sleep(0.05)
                 else:
                     print(f"❌ No se pudieron eliminar datos: {delete_resp.status_code}")
             

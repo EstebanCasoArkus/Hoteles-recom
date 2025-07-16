@@ -20,7 +20,7 @@ export interface Hotel {
 }
 
 export interface Event {
-  titulo: string;
+  titulo?: string;
   fecha?: string;
   fecha_inicio?: string;
   fecha_fin?: string;

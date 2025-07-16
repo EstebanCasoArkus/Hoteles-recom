@@ -12,7 +12,8 @@ import {
   Hotel,
   DollarSign,
   CalendarDays,
-  Zap
+  Zap,
+  User
 } from "lucide-react";
 import RealHotelDashboard from "./real-hotel-dashboard";
 import { HotelsTab } from "./HotelsTab";
@@ -20,30 +21,68 @@ import { PreciosTab } from "./PreciosTab";
 import { AnalyticsTab } from "./AnalyticsTab";
 import { EventsTab } from "./EventsTab";
 import { useBackendAPI } from "../hooks/use-backend-api";
+import HotelCalendarTab from "./HotelCalendarTab";
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
+import UsuarioTab from "./UsuarioTab";
 
 interface TabbedDashboardProps {
   // Props para pasar datos a las diferentes pestañas
 }
 
 export const TabbedDashboard: React.FC<TabbedDashboardProps> = () => {
-  const [activeTab, setActiveTab] = useState("overview");
+ 
+  const [activeTab, setActiveTab] = useState("usuario");
   const { hotels, stats, loading } = useBackendAPI();
   const [events, setEvents] = useState<any[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const router = useRouter();
+
+  // Obtener perfil de usuario autenticado
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      console.log('Perfil de usuario obtenido:', user, error);
+      if (user) {
+        // Log completo de user_metadata para depuración
+        console.log('user_metadata:', user.user_metadata);
+        setUserProfile({
+          name: user.user_metadata?.name || user.email,
+          email: user.email,
+          hotel: user.user_metadata?.hotel || "",
+          hotelId: user.user_metadata?.hotelId ?? "NO HOTEL ID EN METADATA",
+          hotelUrl: user.user_metadata?.hotelUrl || "",
+          geoCode: user.user_metadata?.geoCode ?? "NO GEO EN METADATA"
+        });
+      } else {
+        setUserProfile(null);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   // Obtener eventos
   useEffect(() => {
     const fetchEvents = async () => {
       setLoadingEvents(true);
       try {
+        const { data: { user } } = await supabase.auth.getUser();
+        console.log("Intentando fetch de eventos con user_id:", user?.id);
+        if (!user || !user.id) {
+          console.error('No hay usuario autenticado o user_id es inválido');
+          setEvents([]);
+          setLoadingEvents(false);
+          return;
+        }
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
-        const response = await fetch(`${backendUrl}/api/events`);
-        
+        const response = await fetch(`${backendUrl}/api/events?user_id=${user.id}`);
         if (response.ok) {
           const data = await response.json();
           setEvents(data);
         } else {
-          console.error('Error fetching events:', response.status, response.statusText);
+          const errorText = await response.text();
+          console.error('Error fetching events:', response.status, response.statusText, errorText);
           setEvents([]);
         }
       } catch (error) {
@@ -53,7 +92,6 @@ export const TabbedDashboard: React.FC<TabbedDashboardProps> = () => {
         setLoadingEvents(false);
       }
     };
-
     fetchEvents();
   }, []);
 
@@ -65,8 +103,38 @@ export const TabbedDashboard: React.FC<TabbedDashboardProps> = () => {
     }).format(price);
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/");
+  };
+
   // Componente de resumen
   const DashboardSummary = () => {
+    // Buscar el hotel principal del usuario
+    // const mainHotel = hotels && hotels.length > 0 ? hotels[0] : null;
+    const hotelId = userProfile?.hotelId || 'N/A';
+    let geoCode: any = userProfile?.geoCode;
+    let lat = 'N/A';
+    let lng = 'N/A';
+    if (geoCode && typeof geoCode === 'string') {
+      try {
+        // Si es string y parece JSON, intenta parsear
+        if (geoCode.startsWith('{') && geoCode.endsWith('}')) {
+          geoCode = JSON.parse(geoCode);
+        }
+      } catch (e) {
+        console.warn('geoCode no es un JSON válido:', geoCode);
+      }
+    }
+    if (geoCode && typeof geoCode === 'object') {
+      lat = geoCode.latitude ?? 'NO LAT';
+      lng = geoCode.longitude ?? 'NO LNG';
+    } else if (geoCode && typeof geoCode === 'string' && geoCode !== 'NO GEO EN METADATA') {
+      // Si es string pero no JSON, mostrar el string
+      lat = geoCode;
+      lng = geoCode;
+    }
+
     if (loading || loadingEvents) {
       return (
         <div className="text-center py-8">
@@ -78,6 +146,30 @@ export const TabbedDashboard: React.FC<TabbedDashboardProps> = () => {
 
     return (
       <div className="space-y-4 w-full max-w-7xl mx-auto">
+        {/* Información del usuario */}
+        {userProfile === null && (
+          <div className="mb-4 p-4 rounded-lg bg-red-100 text-red-800 border">No se encontró información de usuario. ¿Estás autenticado?</div>
+        )}
+        {userProfile && (
+          <div className="mb-4 p-4 rounded-lg bg-white/80 dark:bg-gray-900/80 border flex flex-col md:flex-row md:items-center gap-2 md:gap-6 shadow">
+            <div>
+              <div className="font-bold text-lg text-blue-800 dark:text-blue-200">{userProfile.name}</div>
+              <div className="text-sm text-gray-700 dark:text-gray-300">{userProfile.email}</div>
+              <div className="text-sm text-blue-700 dark:text-blue-400 font-semibold">Hotel: {userProfile.hotel}</div>
+              <div className="text-xs text-gray-500">HotelId: {hotelId}</div>
+              <div className="text-xs text-gray-500">Coordenadas: {lat}, {lng}</div>
+              {hotelId === 'NO HOTEL ID EN METADATA' && (
+                <div className="text-xs text-red-600">No se encontró hotelId en el perfil</div>
+              )}
+              {userProfile.geoCode === 'NO GEO EN METADATA' && (
+                <div className="text-xs text-red-600">No se encontró geoCode en el perfil</div>
+              )}
+              {userProfile.hotelUrl && (
+                <div className="text-xs text-blue-600 underline"><a href={userProfile.hotelUrl} target="_blank">Ver sitio del hotel</a></div>
+              )}
+            </div>
+          </div>
+        )}
         {/* Resumen de Hoteles */}
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 w-full">
           <CardHeader className="pb-3">
@@ -206,11 +298,17 @@ export const TabbedDashboard: React.FC<TabbedDashboardProps> = () => {
             Hotel Dashboard con Correlación
           </h1>
         </div>
+        <button
+          onClick={handleLogout}
+          className="ml-4 px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 transition-colors font-semibold shadow"
+        >
+          Cerrar sesión
+        </button>
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8 flex flex-col items-center justify-center">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col items-center">
+      <main className="max-w-7xl mx-auto px-4 py-8 w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="flex flex-row justify-center items-center gap-2 mb-8 w-full max-w-4xl mx-auto">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
@@ -228,9 +326,17 @@ export const TabbedDashboard: React.FC<TabbedDashboardProps> = () => {
               <Calendar className="w-4 h-4" />
               <span className="hidden sm:inline">Eventos</span>
             </TabsTrigger>
+            <TabsTrigger value="calendar" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              <span className="hidden sm:inline">Calendario</span>
+            </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
               <span className="hidden sm:inline">Análisis</span>
+            </TabsTrigger>
+            <TabsTrigger value="usuario" className="flex items-center gap-2">
+              <User className="w-4 h-4" />
+              <span className="hidden sm:inline">Usuario</span>
             </TabsTrigger>
           </TabsList>
 
@@ -251,14 +357,7 @@ export const TabbedDashboard: React.FC<TabbedDashboardProps> = () => {
 
           {/* Pestaña de Calendario */}
           <TabsContent value="calendar" className="space-y-6">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                Calendario de Precios y Eventos
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                Visualiza los precios del hotel y eventos por día
-              </p>
-            </div>
+            <HotelCalendarTab />
           </TabsContent>
 
           {/* Pestaña de Eventos */}
@@ -269,6 +368,11 @@ export const TabbedDashboard: React.FC<TabbedDashboardProps> = () => {
           {/* Pestaña de Análisis */}
           <TabsContent value="analytics" className="space-y-6">
             <AnalyticsTab />
+          </TabsContent>
+
+          {/* Pestaña de Usuario */}
+          <TabsContent value="usuario" className="space-y-6">
+            <UsuarioTab />
           </TabsContent>
         </Tabs>
       </main>

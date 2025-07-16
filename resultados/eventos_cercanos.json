@@ -1,47 +1,357 @@
-[
-  {
-    "nombre": "- M U L U K -",
-    "fecha": "Sat, Jul 19 • 8:00 PM",
-    "lugar": "Casa Badóh",
-    "enlace": "https://www.eventbrite.com/e/-m-u-l-u-k--tickets-1442457903419?aff=ebdssbdestsearch",
-    "latitude": 32.5363723,
-    "longitude": -117.024824,
-    "distance_km": 2.69
-  },
-  {
-    "nombre": "Experiencia Glamping en Baja California",
-    "fecha": "Friday • 7:00 PM + 33 more",
-    "lugar": "Hotel Pueblo Amigo",
-    "enlace": "https://www.eventbrite.com/e/experiencia-glamping-en-baja-california-tickets-429508329977?aff=ebdssbdestsearch",
-    "latitude": 32.5371439,
-    "longitude": -117.0262682,
-    "distance_km": 2.71
-  },
-  {
-    "nombre": "420 MarcSD's Dispo, Brewery, Winery, Tequila Tour",
-    "fecha": "Today • 5:00 PM",
-    "lugar": "San Diego",
-    "enlace": "https://www.eventbrite.com/e/420-marcsds-dispo-brewery-winery-tequila-tour-tickets-1304887085399?aff=ebdssbdestsearch",
-    "latitude": 32.4661965,
-    "longitude": -117.0559339,
-    "distance_km": 5.65
-  },
-  {
-    "nombre": "Cena de Accion de Gracias Bonita Vista",
-    "fecha": "Sat, Nov 15 • 6:00 PM",
-    "lugar": "The Church of Jesus Christ of Latter-day Saints",
-    "enlace": "https://www.eventbrite.com/e/entradas-cena-de-accion-de-gracias-bonita-vista-1413522025429?aff=ebdssbdestsearch",
-    "latitude": 32.4846917,
-    "longitude": -117.0780612,
-    "distance_km": 5.03
-  },
-  {
-    "nombre": "Cena de Navidad Bonita Vista",
-    "fecha": "Fri, Dec 12 • 6:00 PM",
-    "lugar": "The Church of Jesus Christ of Latter-day Saints",
-    "enlace": "https://www.eventbrite.com/e/entradas-cena-de-navidad-bonita-vista-1413521483809?aff=ebdssbdestsearch",
-    "latitude": 32.4846917,
-    "longitude": -117.0780612,
-    "distance_km": 5.03
-  }
-]
+{
+  "mx": [
+    {
+      "nombre": "Lucybell",
+      "fecha": "2025-07-24",
+      "lugar": "El Foro",
+      "enlace": "https://www.songkick.com/es/concerts/42520316-lucybell-at-el-foro",
+      "latitude": 32.53095,
+      "longitude": -117.03649,
+      "distance_km": null
+    },
+    {
+      "nombre": "Al aire libre",
+      "fecha": "2025-08-09",
+      "lugar": "Plaza de Toros Monumental",
+      "enlace": "https://www.songkick.com/es/concerts/42299917-rels-b-at-plaza-de-toros-monumental",
+      "latitude": 32.53352,
+      "longitude": -117.12154,
+      "distance_km": null
+    },
+    {
+      "nombre": "Shakira",
+      "fecha": "2025-08-11",
+      "lugar": "Estadio Caliente",
+      "enlace": "https://www.songkick.com/es/concerts/42539823-shakira-at-estadio-caliente",
+      "latitude": 32.50748,
+      "longitude": -116.99643,
+      "distance_km": null
+    },
+    {
+      "nombre": "Canseco",
+      "fecha": "2025-08-16",
+      "lugar": "Listo Pisto",
+      "enlace": "https://www.songkick.com/es/concerts/42561683-canseco-at-listo-pisto",
+      "latitude": 32.53238,
+      "longitude": -117.03691,
+      "distance_km": null
+    },
+    {
+      "nombre": "The Buttertones",
+      "fecha": "2025-08-26",
+      "lugar": "Black Box",
+      "enlace": "https://www.songkick.com/es/concerts/42550630-buttertones-at-black-box",
+      "latitude": 32.50895,
+      "longitude": -117.03667,
+      "distance_km": null
+    },
+    {
+      "nombre": "Sofia Stainer",
+      "fecha": "2025-08-30",
+      "lugar": "La Maquila - Estación Cultural",
+      "enlace": "https://www.songkick.com/es/concerts/42595619-sofia-stainer-at-la-maquila-estacion-cultural",
+      "latitude": 32.52958,
+      "longitude": -117.01603,
+      "distance_km": null
+    },
+    {
+      "nombre": "Elis Paprika",
+      "fecha": "2025-09-05",
+      "lugar": "La Maquila - Estación Cultural",
+      "enlace": "https://www.songkick.com/es/concerts/42642283-elis-paprika-at-la-maquila-estacion-cultural",
+      "latitude": 32.52958,
+      "longitude": -117.01603,
+      "distance_km": null
+    },
+    {
+      "nombre": "La Texana",
+      "fecha": "2025-09-06",
+      "lugar": "Black Box",
+      "enlace": "https://www.songkick.com/es/concerts/42567170-la-texana-at-black-box",
+      "latitude": 32.50895,
+      "longitude": -117.03667,
+      "distance_km": null
+    },
+    {
+      "nombre": "niño viejo y Israel's Arcade",
+      "fecha": "2025-09-07",
+      "lugar": "Marko Disko",
+      "enlace": "https://www.songkick.com/es/concerts/42653930-nino-viejo-at-marko-disko",
+      "latitude": 32.51961,
+      "longitude": -117.02249,
+      "distance_km": null
+    },
+    {
+      "nombre": "Xandria",
+      "fecha": "2025-09-27",
+      "lugar": "Black Box",
+      "enlace": "https://www.songkick.com/es/concerts/42587263-xandria-at-black-box",
+      "latitude": 32.50895,
+      "longitude": -117.03667,
+      "distance_km": null
+    },
+    {
+      "nombre": "ARCANO",
+      "fecha": "2025-10-03",
+      "lugar": "El Foro",
+      "enlace": "https://www.songkick.com/es/concerts/42689113-arcano-at-el-foro",
+      "latitude": 32.53095,
+      "longitude": -117.03649,
+      "distance_km": null
+    },
+    {
+      "nombre": "Enjambre",
+      "fecha": "2025-10-04",
+      "lugar": "Audiorama El Trompo",
+      "enlace": "https://www.songkick.com/es/concerts/42590426-enjambre-at-audiorama-el-trompo",
+      "latitude": 32.47735,
+      "longitude": -116.92134,
+      "distance_km": null
+    },
+    {
+      "nombre": "Toser One",
+      "fecha": "2025-10-04",
+      "lugar": "Foro Nebraska",
+      "enlace": "https://www.songkick.com/es/concerts/42690286-toser-one-at-foro-nebraska",
+      "latitude": 32.53107,
+      "longitude": -117.03714,
+      "distance_km": null
+    },
+    {
+      "nombre": "Beret",
+      "fecha": "2025-10-11",
+      "lugar": "Audiorama El Trompo",
+      "enlace": "https://www.songkick.com/es/concerts/42207707-beret-at-audiorama-el-trompo",
+      "latitude": 32.47735,
+      "longitude": -116.92134,
+      "distance_km": null
+    },
+    {
+      "nombre": "Chayanne",
+      "fecha": "2025-10-16",
+      "lugar": "Estadio Chevron",
+      "enlace": "https://www.songkick.com/es/concerts/42669067-chayanne-at-estadio-chevron",
+      "latitude": 32.48456,
+      "longitude": -116.93067,
+      "distance_km": null
+    },
+    {
+      "nombre": "French Police",
+      "fecha": "2025-10-17",
+      "lugar": "Marko Disko",
+      "enlace": "https://www.songkick.com/es/concerts/42593596-french-police-at-marko-disko",
+      "latitude": 32.51961,
+      "longitude": -117.02249,
+      "distance_km": null
+    },
+    {
+      "nombre": "Marduk",
+      "fecha": "2025-10-18",
+      "lugar": "Black Box",
+      "enlace": "https://www.songkick.com/es/concerts/42666802-marduk-at-black-box",
+      "latitude": 32.50895,
+      "longitude": -117.03667,
+      "distance_km": null
+    },
+    {
+      "nombre": "Esteman y Daniela Spalla",
+      "fecha": "2025-10-24",
+      "lugar": "El Foro",
+      "enlace": "https://www.songkick.com/es/concerts/42453496-esteman-at-el-foro",
+      "latitude": 32.53095,
+      "longitude": -117.03649,
+      "distance_km": null
+    },
+    {
+      "nombre": "Selofan",
+      "fecha": "2025-10-26",
+      "lugar": "Black Box",
+      "enlace": "https://www.songkick.com/es/concerts/42592501-selofan-at-black-box",
+      "latitude": 32.50895,
+      "longitude": -117.03667,
+      "distance_km": null
+    },
+    {
+      "nombre": "Manuel Medrano",
+      "fecha": "2025-11-07",
+      "lugar": "El Foro Antiguo Palacio Jai Alai - Centro De Espectáculos",
+      "enlace": "https://www.songkick.com/es/concerts/42564744-manuel-medrano-at-el-foro-antiguo-palacio-jai-alai-centro-de-espectaculos",
+      "latitude": 32.52859,
+      "longitude": -117.03609,
+      "distance_km": null
+    },
+    {
+      "nombre": "Caifanes",
+      "fecha": "2025-11-08",
+      "lugar": "Plaza de Toros Monumental",
+      "enlace": "https://www.songkick.com/es/concerts/42564583-caifanes-at-plaza-de-toros-monumental",
+      "latitude": 32.53352,
+      "longitude": -117.12154,
+      "distance_km": null
+    },
+    {
+      "nombre": "Silvestre y La Naranja",
+      "fecha": "2025-11-20",
+      "lugar": "Black Box",
+      "enlace": "https://www.songkick.com/es/concerts/42646355-silvestre-y-la-naranja-at-black-box",
+      "latitude": 32.50895,
+      "longitude": -117.03667,
+      "distance_km": null
+    },
+    {
+      "nombre": "Los Auténticos Decadentes",
+      "fecha": "2025-11-22",
+      "lugar": "El Foro",
+      "enlace": "https://www.songkick.com/es/concerts/42522205-los-autenticos-decadentes-at-el-foro",
+      "latitude": 32.53095,
+      "longitude": -117.03649,
+      "distance_km": null
+    },
+    {
+      "nombre": "Masterplan",
+      "fecha": "2025-11-23",
+      "lugar": "Black Box",
+      "enlace": "https://www.songkick.com/es/concerts/42359738-masterplan-at-black-box",
+      "latitude": 32.50895,
+      "longitude": -117.03667,
+      "distance_km": null
+    },
+    {
+      "nombre": "Somos X Siempre Festival 2025",
+      "fecha": "2025-11-29",
+      "lugar": "La Maquila - Estación Cultural",
+      "enlace": "https://www.songkick.com/es/festivals/3737214-somos-x-siempre/id/42666470-somos-x-siempre-festival-2025",
+      "latitude": 32.52958,
+      "longitude": -117.01603,
+      "distance_km": null
+    }
+  ],
+  "us": [
+    {
+      "name": "INCUBUS - Performing MORNING VIEW In Its Entirety + The Hits",
+      "url": "https://www.ticketmaster.com/incubus-performing-morning-view-in-its-chula-vista-california-07-19-2025/event/0A006237B154275C",
+      "date": "2025-07-19",
+      "time": "19:00:00",
+      "venue": "North Island Credit Union Amphitheatre",
+      "genre": "Rock",
+      "price_range": "N/A"
+    },
+    {
+      "name": "Creed - Summer of '99 Tour",
+      "url": "https://www.ticketmaster.com/creed-summer-of-99-tour-chula-vista-california-08-06-2025/event/0A006186DB894EF6",
+      "date": "2025-08-06",
+      "time": "19:00:00",
+      "venue": "North Island Credit Union Amphitheatre",
+      "genre": "Rock",
+      "price_range": "N/A"
+    },
+    {
+      "name": "Wiz Khalifa - Good Vibes Only Tour: Smoker's Edition",
+      "url": "https://www.ticketmaster.com/wiz-khalifa-good-vibes-only-tour-chula-vista-california-08-08-2025/event/0A0062AF92FC2E14",
+      "date": "2025-08-08",
+      "time": "18:30:00",
+      "venue": "North Island Credit Union Amphitheatre",
+      "genre": "Hip-Hop/Rap",
+      "price_range": "N/A"
+    },
+    {
+      "name": "Big Time Rush: In Real Life Worldwide",
+      "url": "https://www.ticketmaster.com/big-time-rush-in-real-life-chula-vista-california-08-24-2025/event/0A00624EA03A44AA",
+      "date": "2025-08-24",
+      "time": "19:00:00",
+      "venue": "North Island Credit Union Amphitheatre",
+      "genre": "Rock",
+      "price_range": "N/A"
+    },
+    {
+      "name": "Nelly with Ja Rule, Eve & Special Guests: Where The Party At Tour",
+      "url": "https://www.ticketmaster.com/nelly-with-ja-rule-eve-special-chula-vista-california-08-27-2025/event/0A006184DE6F39DD",
+      "date": "2025-08-27",
+      "time": "20:00:00",
+      "venue": "North Island Credit Union Amphitheatre",
+      "genre": "Hip-Hop/Rap",
+      "price_range": "N/A"
+    },
+    {
+      "name": "Jonas Brothers: JONAS20 Greetings From Your Hometown",
+      "url": "https://www.ticketmaster.com/jonas-brothers-jonas20-greetings-from-your-chula-vista-california-09-04-2025/event/0A0062CDCC274CAB",
+      "date": "2025-09-04",
+      "time": "19:30:00",
+      "venue": "North Island Credit Union Amphitheatre",
+      "genre": "Rock",
+      "price_range": "N/A"
+    },
+    {
+      "name": "Little Big Town: Summer Tour 2025",
+      "url": "https://www.ticketmaster.com/little-big-town-summer-tour-2025-chula-vista-california-09-05-2025/event/0A006282978148DD",
+      "date": "2025-09-05",
+      "time": "19:00:00",
+      "venue": "North Island Credit Union Amphitheatre",
+      "genre": "Country",
+      "price_range": "N/A"
+    },
+    {
+      "name": "$uicideboy$ present Grey Day Tour 2025 w. BONES & more",
+      "url": "https://www.ticketmaster.com/uicideboy-present-grey-day-tour-2025-chula-vista-california-09-06-2025/event/0A006278B2293BBA",
+      "date": "2025-09-06",
+      "time": "18:30:00",
+      "venue": "North Island Credit Union Amphitheatre",
+      "genre": "Hip-Hop/Rap",
+      "price_range": "N/A"
+    },
+    {
+      "name": "Lil Wayne: Tha Carter VI Tour Celebrating 20+ years of Carter Classics",
+      "url": "https://www.ticketmaster.com/lil-wayne-tha-carter-vi-tour-chula-vista-california-09-10-2025/event/0A0062B6F35657AE",
+      "date": "2025-09-10",
+      "time": "20:00:00",
+      "venue": "North Island Credit Union Amphitheatre",
+      "genre": "Hip-Hop/Rap",
+      "price_range": "N/A"
+    },
+    {
+      "name": "Deorro",
+      "url": "https://www.ticketmaster.com/deorro-chula-vista-california-09-12-2025/event/0A0062BE99C3388E",
+      "date": "2025-09-12",
+      "time": "20:00:00",
+      "venue": "North Island Credit Union Amphitheatre",
+      "genre": "Dance/Electronic",
+      "price_range": "N/A"
+    },
+    {
+      "name": "Jorge Medina & Josi Cuen - JUNTOS",
+      "url": "https://www.ticketmaster.com/jorge-medina-josi-cuen-juntos-chula-vista-california-09-20-2025/event/0A00626CA4A72341",
+      "date": "2025-09-20",
+      "time": "20:00:00",
+      "venue": "North Island Credit Union Amphitheatre",
+      "genre": "Latin",
+      "price_range": "N/A"
+    },
+    {
+      "name": "Billy Idol:  It's A Nice Day To...Tour Again!",
+      "url": "https://www.ticketmaster.com/billy-idol-its-a-nice-day-chula-vista-california-09-23-2025/event/0A006230955A1779",
+      "date": "2025-09-23",
+      "time": "19:30:00",
+      "venue": "North Island Credit Union Amphitheatre",
+      "genre": "Rock",
+      "price_range": "N/A"
+    },
+    {
+      "name": "The Thuggish-Ruggish-Mafia Tour",
+      "url": "https://www.ticketmaster.com/the-thuggishruggishmafia-tour-chula-vista-california-10-03-2025/event/0A0062C69D2A2C63",
+      "date": "2025-10-03",
+      "time": "19:30:00",
+      "venue": "North Island Credit Union Amphitheatre",
+      "genre": "Hip-Hop/Rap",
+      "price_range": "N/A"
+    },
+    {
+      "name": "Luis R Conriquez - Trakas HDSPM Tour",
+      "url": "https://www.ticketmaster.com/luis-r-conriquez-trakas-hdspm-tour-chula-vista-california-10-04-2025/event/0A00625AB3234726",
+      "date": "2025-10-04",
+      "time": "20:00:00",
+      "venue": "North Island Credit Union Amphitheatre",
+      "genre": "Latin",
+      "price_range": "N/A"
+    }
+  ]
+}

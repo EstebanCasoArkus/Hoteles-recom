@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
@@ -16,10 +17,7 @@ export interface Hotel {
 export interface HotelStats {
   total_hotels: number;
   avg_price: number;
-  price_range: {
-    min: number;
-    max: number;
-  };
+  price_range: { min: number; max: number };
   star_distribution: Record<number, number>;
   last_updated: string;
 }
@@ -30,30 +28,27 @@ export const useBackendAPI = () => {
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<HotelStats | null>(null);
 
-  // Fetch hotels from backend API
+  // Fetch hotels from backend API SOLO del usuario autenticado
   const fetchHotels = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
     try {
-      console.log('🔄 Fetching hotels from backend API...');
-      
-      const response = await fetch(`${BACKEND_URL}/api/hotels`);
-      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError('No autenticado');
+        setLoading(false);
+        return;
+      }
+      const response = await fetch(`${BACKEND_URL}/api/hotels?user_id=${user.id}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
       const hotels = await response.json();
-      
-      console.log(`✅ Fetched ${hotels?.length || 0} hotels from backend API`);
-      setHotels(hotels || []);
-      
+      setHotels(Array.isArray(hotels) ? hotels : []);
       // Calculate stats from hotels
       if (hotels && hotels.length > 0) {
         const prices = hotels.map((h: Hotel) => h.precio_promedio);
         const avgPrice = prices.reduce((sum: number, price: number) => sum + price, 0) / prices.length;
-        
         const newStats = {
           total_hotels: hotels.length,
           avg_price: avgPrice,
@@ -67,18 +62,14 @@ export const useBackendAPI = () => {
           }, {} as Record<number, number>),
           last_updated: new Date().toISOString()
         };
-        
         setStats(newStats);
-        console.log('📊 Stats updated:', newStats);
       } else {
-        // Reset stats if no hotels
         setStats(null);
-        console.log('📊 No hotels found, stats reset');
       }
-      
     } catch (err) {
-      console.error('❌ Error in fetchHotels:', err);
-      setError(err instanceof Error ? err.message : 'Network error');
+      setError((err as Error).message);
+      setHotels([]);
+      setStats(null);
     } finally {
       setLoading(false);
     }
@@ -100,12 +91,5 @@ export const useBackendAPI = () => {
     fetchHotels();
   }, [fetchHotels]);
 
-  return {
-    hotels,
-    loading,
-    error,
-    stats,
-    fetchHotels,
-    healthCheck,
-  };
+  return { hotels, loading, error, stats, fetchHotels };
 }; 
