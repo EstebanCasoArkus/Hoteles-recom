@@ -1,5 +1,5 @@
-import fetch from 'node-fetch';
-import 'dotenv/config';
+const fetch = require('node-fetch');
+require('dotenv/config');
 
 const AMADEUS_CLIENT_ID = process.env.AMADEUS_CLIENT_ID;
 const AMADEUS_CLIENT_SECRET = process.env.AMADEUS_CLIENT_SECRET;
@@ -28,7 +28,8 @@ async function getAccessToken() {
   return data.access_token;
 }
 
-export default async function handler(req, res) {
+// Handler para frameworks que lo requieran
+async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
   const { name, lat, lon } = req.body;
@@ -61,9 +62,8 @@ export default async function handler(req, res) {
   res.status(200).json({ hotels: filtered });
 }
 
-// Permitir ejecución por CLI en ES Modules
-const isDirect = process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/'));
-if (isDirect) {
+// Permitir ejecución por CLI en CommonJS
+if (require.main === module) {
   // Parsear argumentos CLI
   const args = process.argv.slice(2);
   let lat = '', lon = '', name = '';
@@ -95,4 +95,6 @@ if (isDirect) {
       process.exit(1);
     }
   })();
-} 
+}
+
+module.exports = handler; 
