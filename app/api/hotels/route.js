@@ -10,7 +10,7 @@ export async function POST(request) {
 
   return new Promise((resolve) => {
     const scriptPath = path.join(process.cwd(), 'amadeus_search.js');
-    const process = spawn('node', [
+    const child = spawn('node', [
       scriptPath,
       '--lat', lat,
       '--lon', lon,
@@ -18,13 +18,13 @@ export async function POST(request) {
     ]);
 
     let data = '';
-    process.stdout.on('data', (chunk) => {
+    child.stdout.on('data', (chunk) => {
       data += chunk;
     });
-    process.stderr.on('data', (err) => {
+    child.stderr.on('data', (err) => {
       console.error('STDERR del script:', err.toString());
     });
-    process.on('close', () => {
+    child.on('close', () => {
       try {
         console.log('Salida del script amadeus_search.js:', data);
         const lastLine = data.trim().split('\n').pop();
