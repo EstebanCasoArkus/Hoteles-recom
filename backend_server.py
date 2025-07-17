@@ -28,23 +28,28 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 @app.route('/run-scrape-hotels', methods=['POST'])
 def run_scrape_hotels():
+    print("Petición recibida en /run-scrape-hotels")
+    data = request.get_json()
+    print("Después de get_json")
+    user_id = data.get('user_id') if data else None
+    print("Después de obtener user_id:", user_id)
+    if not user_id:
+        return jsonify({'error': 'user_id requerido'}), 400
     try:
+        # Ejecuta el script y pasa el user_id como argumento
+        print("try")
         result = subprocess.run(
-            ['python', 'python_scripts/scrape_hotels.py'],
-            capture_output=True,
-            text=True,
-            check=True,
-            encoding='utf-8',
-            errors='replace'
+           
+            ['python', 'python_scripts/scrape_hotels.py', user_id],
+            capture_output=True, text=True, check=True,
+            encoding='utf-8', errors='replace'
         )
-        return jsonify({'output': result.stdout}), 200
+        print("Antes de iniciar scraping")
+        print("Después de scraping")
+        return jsonify({'output': result.stdout})
     except subprocess.CalledProcessError as e:
-        print("STDOUT:", e.stdout)
-        print("STDERR:", e.stderr)
-        return jsonify({'error': e.stderr}), 500
-    except Exception as ex:
-        print("General Exception:", ex)
-        return jsonify({'error': str(ex)}), 500
+        print("Error ejecutando el script:", e.stderr)
+        return jsonify({'error': 'Error ejecutando el script', 'details': e.stderr}), 500
 
 @app.route('/run-scrapeo-geo', methods=['POST'])
 def run_scrapeo_geo():
@@ -116,26 +121,24 @@ def get_events():
 
 @app.route('/api/hotels', methods=['GET'])
 def get_hotels():
-    """Fetch hotels from Supabase filtrando por user_id"""
+    """Fetch hotels from Supabase, RLS will filter by user automatically"""
     if not SUPABASE_URL or not SUPABASE_KEY:
         return jsonify({'error': 'Supabase configuration missing'}), 500
 
-    user_id = request.args.get('user_id')
-    if not user_id:
-        return jsonify({'error': 'user_id requerido'}), 400
-
+    user_jwt = request.headers.get('x-user-jwt')
+    headers = {
+        'apikey': SUPABASE_KEY,
+        'Authorization': f'Bearer {user_jwt if user_jwt else SUPABASE_KEY}'
+    }
     try:
         response = requests.get(
-            f'{SUPABASE_URL}/rest/v1/hotels?user_id=eq.{user_id}&select=*&order=created_at.desc',
-            headers={
-                'apikey': SUPABASE_KEY,
-                'Authorization': f'Bearer {SUPABASE_KEY}'
-            }
+            f'{SUPABASE_URL}/rest/v1/hotels?select=*&order=created_at.desc',
+            headers=headers
         )
         if response.status_code == 200:
             return jsonify(response.json())
         else:
-            return jsonify({'error': f'Supabase error: {response.status_code}'}), response.status_code
+            return jsonify({'error': f'Supabase error: {response.status_code}', 'details': response.text}), response.status_code
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -150,12 +153,14 @@ def create_hotel():
     estrellas = data.get('estrellas')
     precio_promedio = data.get('precio_promedio')
     noches_contadas = data.get('noches_contadas')
+    # Obtener JWT del header o del body
+    user_jwt = request.headers.get('x-user-jwt') or data.get('jwt')
     # Guardar en Supabase
     response = requests.post(
         f'{SUPABASE_URL}/rest/v1/hotels',
         headers={
             'apikey': SUPABASE_KEY,
-            'Authorization': f'Bearer {SUPABASE_KEY}',
+            'Authorization': f'Bearer {user_jwt if user_jwt else SUPABASE_KEY}',
             'Content-Type': 'application/json'
         },
         json={
@@ -163,7 +168,9 @@ def create_hotel():
             'estrellas': estrellas,
             'precio_promedio': precio_promedio,
             'noches_contadas': noches_contadas,
-            'user_id': user_id
+            'user_id': user_id,
+            'created_by': user_id
+
         }
     )
     return jsonify(response.json()), response.status_code

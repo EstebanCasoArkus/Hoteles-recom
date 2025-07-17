@@ -18,6 +18,8 @@ import json as pyjson
 from prophet import Prophet
 import pandas as pd
 import numpy as np
+import uuid
+import jwt
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
@@ -30,47 +32,67 @@ SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY')
 print("SUPABASE_URL:", SUPABASE_URL)
 print("SUPABASE_ANON_KEY:", SUPABASE_ANON_KEY)
 
-# Modificar para recibir user_id como argumento obligatorio
-import sys
-import io
-import os
-import requests
-from dotenv import load_dotenv
-from pathlib import Path
-import json as pyjson
-from prophet import Prophet
-import pandas as pd
-import numpy as np
+def is_valid_uuid(val):
+    try:
+        uuid.UUID(str(val))
+        return True
+    except ValueError:
+        return False
 
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+def insert_hotels_supabase(user_id, resultado_final, supabase_url, supabase_key, user_jwt=None):
+    if not is_valid_uuid(user_id):
+        print("ERROR: user_id no es un UUID válido:", user_id)
+        return
+    url = f"{supabase_url}/rest/v1/hotels?on_conflict=nombre,fecha"
+    headers = {
+        "apikey": supabase_key,
+        "Authorization": f"Bearer {user_jwt if user_jwt else supabase_key}",
+        "Content-Type": "application/json",
+        "Prefer": "resolution=merge-duplicates"
+    }
 
-# Cargar .env desde la raíz del proyecto
-load_dotenv(dotenv_path=Path(__file__).parent.parent / '.env')
+    # 1. Armar la lista de todos los registros
+    registros = []
+    for hotel in resultado_final:
+        for precio_dia in hotel.get("precios_por_dia", []):
+            data = {
+                "user_id": user_id,
+                "nombre": hotel["nombre"],
+                "fecha": precio_dia["fecha"],
+                "precio": precio_dia["precio"],
+                "tipo": precio_dia.get("tipo", ""),
+                "estrellas": int(hotel["estrellas"]) if hotel["estrellas"] is not None else 0,
+                "precio_promedio": hotel["precio_promedio"] if hotel["precio_promedio"] is not None else 0,
+                "noches_contadas": hotel["noches_contadas"] if hotel["noches_contadas"] is not None else 0,
+                "created_at": datetime.now().isoformat(),
+                "created_by": user_id
+            }
+            registros.append(data)
 
-SUPABASE_URL = os.getenv('SUPABASE_URL')
-SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY')
+    # 2. Insertar en lotes
+    batch_size = 100  # Puedes ajustar el tamaño del lote
+    total = len(registros)
+    for i in range(0, total, batch_size):
+        batch = registros[i:i+batch_size]
+        r = requests.post(url, headers=headers, json=batch)
+        print(f"Status: {r.status_code} Response: {r.text}")
+        if r.status_code in (200, 201):
+            print(f"✅ [{i+1}-{min(i+batch_size, total)}/{total}] Lote guardado correctamente.")
+        else:
+            print(f"❌ [{i+1}-{min(i+batch_size, total)}/{total}] Error guardando lote: {r.status_code}")
+            if "Could not find the" in r.text:
+                print("Error estructural en la base de datos. Abortando el guardado masivo.")
+                break
+        time.sleep(0.05)
 
-print("SUPABASE_URL:", SUPABASE_URL)
-print("SUPABASE_ANON_KEY:", SUPABASE_ANON_KEY)
-
-if len(sys.argv) >= 2 and sys.argv[1] == '--user_id':
-    if len(sys.argv) < 3:
-        print('Debes proporcionar el user_id después de --user_id')
-        sys.exit(1)
-    user_id = sys.argv[2]
-else:
-    print('Debes ejecutar el script con --user_id <user_id>')
-    sys.exit(1)
-print(f'user_id: {user_id}')
-
-def scrape_hotels():
+def scrape_hotels(user_id, user_jwt=None):
     """Scrape hotel prices from Booking.com"""
     print("🏨 Iniciando scraping de hoteles en Tijuana...")
     
     # Configure browser
     options = Options()
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36")
-    options.add_argument("--headless")
+    #options.add_argument("--headless")
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
@@ -79,7 +101,7 @@ def scrape_hotels():
 
     # Date range
     hoy = datetime.today().date()
-    dias_a_buscar = 15
+    dias_a_buscar = 30
 
     # Dictionary to accumulate prices per hotel
     hoteles_info = {}
@@ -223,7 +245,8 @@ def scrape_hotels():
             "estrellas": hotel["Estrellas"] if hotel["Estrellas"] is not None else 0,
             "precio_promedio": round(promedio, 2),
             "noches_contadas": len(precios),
-            "precios_por_dia": precios_completos
+            "precios_por_dia": precios_completos,
+            "created_by": user_id
         })
 
     # Save to JSON
@@ -242,88 +265,15 @@ def scrape_hotels():
             estrellas_str = f"⭐ {hotel['estrellas']}" if hotel['estrellas'] else "⭐ N/A"
             print(f"🏨 {hotel['nombre']} — {estrellas_str} — 💰 ${hotel['precio_promedio']} MXN")
             
-        # Insertar en Supabase
+        # Insertar en Supabase usando requests y user_id validado
         if SUPABASE_URL and SUPABASE_ANON_KEY:
             print("\n🌐 Guardando resultados en Supabase...")
-            headers = {
-                "apikey": SUPABASE_ANON_KEY,
-                "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
-                "Content-Type": "application/json"
-            }
-            
-            # Usar función SQL personalizada para limpiar y reinsertar datos
-            print("🧹 Limpiando y reinsertando datos con función SQL...")
-            
-            # Preparar datos para la función SQL
-            hotel_data = []
-            for hotel in resultado_final:
-                print(f"precios por dia: {hotel['precios_por_dia']}")
-                hotel_data.append({
-                    "nombre": hotel["nombre"],
-                    "estrellas": int(hotel["estrellas"]) if hotel["estrellas"] is not None else 0,
-                    "precio_promedio": hotel["precio_promedio"] if hotel["precio_promedio"] is not None else 0,
-                    "noches_contadas": hotel["noches_contadas"] if hotel["noches_contadas"] is not None else 0,
-                    "precios_por_dia": hotel["precios_por_dia"] if hotel["precios_por_dia"] is not None else [], # Incluir precios por día
-                    "created_at": datetime.now().isoformat(),
-                    "user_id": user_id
-                })
-            
-            # Llamar a la función SQL personalizada
-            with open("resultados/hoteles_tijuana_promedios.json", "r", encoding="utf-8") as f:
-                hotel_data = json.load(f)
-            print("JSON enviado a Supabase:", pyjson.dumps({"hotel_data": hotel_data}, indent=2, ensure_ascii=False))
-            # Luego POST:
-            refresh_resp = requests.post(
-                f"{SUPABASE_URL}/rest/v1/rpc/refresh_hotels",
-                headers=headers,
-                json={"hotel_data": hotel_data}
-            )
-            
-            if refresh_resp.status_code == 200:
-                print(f"✅ Datos actualizados correctamente con función SQL")
-                print(f"🎉 {len(resultado_final)} hoteles procesados y guardados")
-            else:
-                print(f"⚠️ Error con función SQL: {refresh_resp.status_code} - {refresh_resp.text}")
-                print("🔄 Intentando método alternativo...")
-                
-                # Fallback: método manual
-                # Primero limpiar
-                delete_resp = requests.delete(f"{SUPABASE_URL}/rest/v1/hotels?nombre=not.is.null", headers=headers)
-                if delete_resp.status_code in (200, 204):
-                    print("✅ Datos anteriores eliminados")
-                    
-                    # Luego insertar uno por uno
-                    print(f"💾 Insertando {len(resultado_final)} hoteles...")
-                    total = sum(len(hotel.get("precios_por_dia", [])) for hotel in resultado_final)
-                    count = 0
-                    for hotel in resultado_final:
-                        for precio_dia in hotel.get("precios_por_dia", []):
-                            data = {
-                                "nombre": hotel["nombre"],
-                                "fecha": precio_dia["fecha"],
-                                "precio": precio_dia["precio"],
-                                "tipo": precio_dia.get("tipo", ""),
-                                "estrellas": int(hotel["estrellas"]) if hotel["estrellas"] is not None else 0,
-                                "precio_promedio": hotel["precio_promedio"] if hotel["precio_promedio"] is not None else 0,
-                                "noches_contadas": hotel["noches_contadas"] if hotel["noches_contadas"] is not None else 0,
-                                "created_at": datetime.now().isoformat(),
-                                "user_id": user_id
-                            }
-                            print("Enviando a Supabase:", data)
-                            url = f"{SUPABASE_URL}/rest/v1/hotels?on_conflict=nombre,fecha"
-                            headers_upsert = headers.copy()
-                            headers_upsert["Prefer"] = "resolution=merge-duplicates"
-                            r = requests.post(url, headers=headers_upsert, json=data)
-                            print("Status:", r.status_code, "Response:", r.text)
-                            count += 1
-                            if r.status_code in (200, 201):
-                                print(f"✅ [{count}/{total}] Guardado: {hotel['nombre']} {precio_dia['fecha']}")
-                            else:
-                                print(f"❌ [{count}/{total}] Error guardando {hotel['nombre']} {precio_dia['fecha']}: {r.status_code}")
-                            time.sleep(0.05)
-                else:
-                    print(f"❌ No se pudieron eliminar datos: {delete_resp.status_code}")
-            
+            print("user_id que se usará:", user_id)
+            if user_jwt:
+                print("JWT recibido:", user_jwt)
+                decoded = jwt.decode(user_jwt, options={"verify_signature": False})
+                print("sub del JWT:", decoded.get("sub"))
+            insert_hotels_supabase(user_id, resultado_final, SUPABASE_URL, SUPABASE_ANON_KEY, user_jwt)
             print(f"🎉 Proceso completado. {len(resultado_final)} hoteles guardados en Supabase.")
         else:
             print("⚠️ No se encontró SUPABASE_URL o SUPABASE_ANON_KEY en el entorno.")
@@ -335,7 +285,14 @@ def scrape_hotels():
 def main():
     """Main function"""
     try:
-        scrape_hotels()
+        import argparse
+        parser = argparse.ArgumentParser()
+        parser.add_argument('user_id', help='ID de usuario')
+        parser.add_argument('--jwt', help='JWT de usuario (opcional)', default=None)
+        args = parser.parse_args()
+        user_id = args.user_id
+        user_jwt = args.jwt or os.environ.get('USER_JWT')
+        scrape_hotels(user_id, user_jwt)
     except Exception as e:
         print(f"❌ Error general: {e}")
         sys.exit(1)

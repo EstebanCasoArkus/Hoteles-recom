@@ -10,7 +10,10 @@ interface Hotel {
   nombre: string;
   estrellas?: number;
   precio_promedio?: number;
-  precios_por_dia?: number[];
+  precios_por_dia?: any[];
+  fecha?: string;
+  precio?: number;
+  tipo?: string;
 }
 
 interface Event {
@@ -28,7 +31,6 @@ interface Event {
 const HotelCalendarTab: React.FC = () => {
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [selectedHotel, setSelectedHotel] = useState<string>("");
-  const [hotelData, setHotelData] = useState<Hotel | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [calendarDate, setCalendarDate] = useState<Date>(new Date());
 
@@ -44,12 +46,35 @@ const HotelCalendarTab: React.FC = () => {
     fetchHotels();
   }, []);
 
-  // Fetch hotel data when selectedHotel changes
-  useEffect(() => {
-    if (!selectedHotel) return;
-    const hotel = hotels.find(h => h.nombre === selectedHotel);
-    setHotelData(hotel || null);
-  }, [selectedHotel, hotels]);
+  // Agrupa los registros por nombre de hotel y crea precios_por_dia
+  const hotelsGrouped = React.useMemo(() => {
+    const map = new Map<string, Hotel & { precios_por_dia: any[] }>();
+    (Array.isArray(hotels) ? hotels : []).forEach(hotel => {
+      if (!map.has(hotel.nombre)) {
+        map.set(hotel.nombre, {
+          ...hotel,
+          precios_por_dia: []
+        });
+      }
+      // Agrega el precio de este registro al array SOLO si tiene fecha, precio y tipo
+      if (hotel.fecha && typeof hotel.precio !== 'undefined' && hotel.tipo) {
+        map.get(hotel.nombre)!.precios_por_dia.push({
+          fecha: hotel.fecha,
+          precio: hotel.precio,
+          tipo: hotel.tipo
+        });
+      }
+    });
+    // Ordena los precios_por_dia por fecha
+    map.forEach(hotel => {
+      hotel.precios_por_dia.sort((a, b) => a.fecha.localeCompare(b.fecha));
+    });
+    return Array.from(map.values());
+  }, [hotels]);
+
+  const hotelData = React.useMemo(() => {
+    return hotelsGrouped.find(h => h.nombre === selectedHotel) || null;
+  }, [selectedHotel, hotelsGrouped]);
 
   // Fetch events for the next 15 days
   useEffect(() => {
@@ -106,6 +131,24 @@ const HotelCalendarTab: React.FC = () => {
     return null;
   };
 
+  // Filtrar hoteles únicos por nombre para el Select, eligiendo la versión más completa
+  const uniqueHotels = React.useMemo(() => {
+    const map = new Map();
+    (Array.isArray(hotels) ? hotels : []).forEach(hotel => {
+      const prev = map.get(hotel.nombre);
+      const currScore = Array.isArray(hotel.precios_por_dia)
+        ? (typeof hotel.precios_por_dia[0] === 'object' ? 2 : 1)
+        : 0;
+      const prevScore = prev && Array.isArray(prev.precios_por_dia)
+        ? (typeof prev.precios_por_dia[0] === 'object' ? 2 : 1)
+        : 0;
+      if (!prev || currScore > prevScore) {
+        map.set(hotel.nombre, hotel);
+      }
+    });
+    return Array.from(map.values());
+  }, [hotels]);
+
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
@@ -124,7 +167,7 @@ const HotelCalendarTab: React.FC = () => {
               <SelectValue placeholder="Selecciona un hotel" />
             </SelectTrigger>
             <SelectContent>
-              {(Array.isArray(hotels) ? hotels : []).map((hotel) => (
+              {hotelsGrouped.map((hotel) => (
                 <SelectItem key={hotel.nombre} value={hotel.nombre}>{hotel.nombre}</SelectItem>
               ))}
             </SelectContent>
@@ -135,19 +178,7 @@ const HotelCalendarTab: React.FC = () => {
         <Card className="p-4 w-full max-w-md mx-auto">
           {hotelData?.precios_por_dia && hotelData.precios_por_dia.length > 0 ? (
             <CustomHotelCalendar 
-              precios_por_dia={
-                hotelData.precios_por_dia && typeof hotelData.precios_por_dia[0] === 'object'
-                  ? hotelData.precios_por_dia as any
-                  : hotelData.precios_por_dia.map((precio, i) => {
-                      const fecha = new Date();
-                      fecha.setDate(fecha.getDate() + i);
-                      return {
-                        fecha: fecha.toISOString().slice(0, 10),
-                        precio,
-                        tipo: "real"
-                      };
-                    })
-              }
+              precios_por_dia={hotelData.precios_por_dia}
               fecha_inicio={new Date()} 
             />
           ) : (

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -21,6 +21,7 @@ import {
   Play
 } from "lucide-react";
 import { useBackendAPI, type Hotel, type HotelStats } from "../hooks/use-backend-api";
+import { createClient } from '@supabase/supabase-js';
 
 const formatPrice = (price: number) => {
   return new Intl.NumberFormat("es-MX", {
@@ -56,6 +57,13 @@ const renderStars = (stars: number) => {
   );
 };
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+
+
 export const HotelsTab: React.FC = () => {
   const {
     hotels,
@@ -70,45 +78,72 @@ export const HotelsTab: React.FC = () => {
 
   const handleStartScraping = async () => {
     setIsRunning(true);
-    setLogs([]);
-
-    try {
-      console.log('🚀 Iniciando scraping de hoteles...');
-      setLogs(['🚀 Iniciando scraping de hoteles...']);
-      
-      // Ejecuta el script de scraping
-      const response = await fetch('http://localhost:5000/run-scrape-hotels', { method: 'POST' });
-      const result = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(result.error || 'Error ejecutando el script');
-      }
-      
-      console.log('✅ Script ejecutado correctamente');
-      setLogs(prev => [...prev, '✅ Script ejecutado correctamente', result.output]);
-      
-      // Espera un poco para que los datos se suban a Supabase
-      setTimeout(async () => {
-        console.log('🔄 Actualizando datos desde Supabase...');
-        setLogs(prev => [...prev, '🔄 Actualizando datos desde Supabase...']);
-        
-        await fetchHotels();
-        setIsRunning(false);
-        
-        console.log('✅ Datos actualizados automáticamente');
-        setLogs(prev => [...prev, '✅ Datos actualizados automáticamente']);
-      }, 3000); // Aumentamos el tiempo a 3 segundos para asegurar que los datos estén en Supabase
-      
-    } catch (error) {
-      console.error('Error running script:', error);
+    setLogs([]); // Limpia los logs al iniciar
+    // Obtén el usuario autenticado
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (!user) {
+      setLogs(['❌ Debes iniciar sesión para usar esta función.']);
       setIsRunning(false);
-      setLogs(['❌ Error ejecutando el script: ' + (error as Error).message]);
+      return;
+    }
+    const user_id = user.id;
+  
+    try {
+      setLogs(prev => [...prev, '🚀 Ejecutando scraping de hoteles...']);
+      const response = await fetch('http://localhost:5000/run-scrape-hotels', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setLogs(prev => [
+          ...prev,
+          '✅ Scraping completado correctamente.',
+          data.output || ''
+        ]);
+        await fetchHotels();
+      } else {
+        setLogs(prev => [
+          ...prev,
+          `❌ Error ejecutando el scraping: ${data.error || 'Error desconocido'}`,
+          data.details ? `Detalles: ${data.details}` : ''
+        ]);
+      }
+    } catch (err) {
+      setLogs(prev => [
+        ...prev,
+        '❌ Error de red o del servidor.',
+        (err as Error).message
+      ]);
+    } finally {
+      setIsRunning(false);
     }
   };
 
   const handleRefresh = () => {
     fetchHotels();
   };
+
+  // Filtrar hoteles únicos por nombre y solo datos reales
+  const uniqueRealHotels = React.useMemo(() => {
+    const seen = new Set();
+    return (Array.isArray(hotels) ? hotels : [])
+      .filter(hotel => {
+        // Si el hotel ya fue visto por nombre, lo omitimos
+        if (seen.has(hotel.nombre)) return false;
+        seen.add(hotel.nombre);
+        // Si tiene precios_por_dia, aseguramos que tenga al menos un precio real
+        if (hotel.precios_por_dia && Array.isArray(hotel.precios_por_dia)) {
+          return hotel.precios_por_dia.some((p: any) => p.tipo === 'real');
+        }
+        // Si no tiene precios_por_dia, lo mostramos igual
+        return true;
+      });
+  }, [hotels]);
 
   return (
     <div className="space-y-6">
@@ -159,21 +194,25 @@ export const HotelsTab: React.FC = () => {
             </Button>
 
             {/* Logs Section */}
-            {logs.length > 0 && (
-              <div className="bg-slate-900 rounded-lg p-4">
-                <h3 className="text-sm font-medium text-slate-300 mb-3 flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-2" />
-                  Registro de Ejecución
-                </h3>
-                <div className="space-y-1 max-h-40 overflow-y-auto">
-                  {logs.map((log, index) => (
-                    <div key={index} className="text-sm text-green-400 font-mono">
-                      {log}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            <div className="mt-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Logs de Scraping</CardTitle>
+            <CardDescription>Mensajes recientes de la ejecución</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="max-h-48 overflow-y-auto space-y-1 text-sm font-mono bg-muted/30 rounded p-2 border">
+              {logs.length === 0 ? (
+                <span className="text-muted-foreground">No hay logs recientes.</span>
+              ) : (
+                logs.map((log, index) => (
+                  <div key={index}>{log}</div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
           </CardContent>
         </Card>
 
@@ -276,7 +315,7 @@ export const HotelsTab: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {(Array.isArray(hotels) ? hotels : []).map((hotel) => (
+              {uniqueRealHotels.map((hotel) => (
                 <Card key={hotel.id || hotel.nombre} className="hover:shadow-lg transition-shadow">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">

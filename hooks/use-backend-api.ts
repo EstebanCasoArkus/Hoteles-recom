@@ -12,6 +12,7 @@ export interface Hotel {
   precio_promedio: number;
   noches_contadas: number;
   created_at?: string;
+  precios_por_dia?: Array<{ fecha: string; precio: number; tipo: string }>;
 }
 
 export interface HotelStats {
