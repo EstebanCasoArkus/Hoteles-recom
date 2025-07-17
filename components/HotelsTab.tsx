@@ -93,7 +93,7 @@ export const HotelsTab: React.FC = () => {
   
     try {
       setLogs(prev => [...prev, '🚀 Ejecutando scraping de hoteles...']);
-      const response = await fetch('http://localhost:5000/run-scrape-hotels', {
+      const response = await fetch('https://backend-py-7tos.onrender.com/run-scrape-hotels', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id }),
